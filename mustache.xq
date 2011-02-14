@@ -7,33 +7,33 @@ module namespace mustache = "mustache.xq" ;
 
 declare namespace s = "http://www.w3.org/2009/xpath-functions/analyze-string" ;
 
-declare variable $otag        := "{{" ;
-declare variable $ctag        := "}}" ;
-declare variable $oisec       := '^' ;
-declare variable $osec        := '#' ;
-declare variable $csec        := '/' ;
-declare variable $templ       := '&gt;' ;  (: > :)
-declare variable $unesc       := '&amp;' ; (: & :)
-declare variable $uneschtml   := '{' ;
-declare variable $r-tag       := '\s*(.+)\s*' ;
-declare variable $r-osec      := 
-  fn:string-join( mustache:escape-for-regexp( ( $oisec, $osec ) ), "|" ) ;
-declare variable $r-csec      := mustache:escape-for-regexp( $csec ) ;
-declare variable $r-modifiers := 
-  fn:string-join( mustache:escape-for-regexp( ( $templ, $unesc, $uneschtml ) ), "|" ) ;
-declare variable $mustaches := 
-  mustache:r-mustache( $r-modifiers, '*' ) ;
-declare variable $sections :=
+declare variable $mustache:otag        := "{{" ;
+declare variable $mustache:ctag        := "}}" ;
+declare variable $mustache:oisec       := '^' ;
+declare variable $mustache:osec        := '#' ;
+declare variable $mustache:csec        := '/' ;
+declare variable $mustache:templ       := '&gt;' ;  (: > :)
+declare variable $mustache:unesc       := '&amp;' ; (: & :)
+declare variable $mustache:uneschtml   := '{' ;
+declare variable $mustache:r-tag       := '\s*(.+)\s*' ;
+declare variable $mustache:r-osec      := 
+  fn:string-join( mustache:escape-for-regexp( ( $mustache:oisec, $mustache:osec ) ), "|" ) ;
+declare variable $mustache:r-csec      := mustache:escape-for-regexp( $mustache:csec ) ;
+declare variable $mustache:r-modifiers := 
+  fn:string-join( mustache:escape-for-regexp( ( $mustache:templ, $mustache:unesc, $mustache:uneschtml ) ), "|" ) ;
+declare variable $mustache:r-mustaches := 
+  mustache:r-mustache( $mustache:r-modifiers, '*' ) ;
+declare variable $mustache:r-sections :=
   fn:concat(
-    mustache:r-mustache( $r-osec, '' ),
-    $r-tag,
-    mustache:r-mustache( $r-csec, '' ) ) ;
+    mustache:r-mustache( $mustache:r-osec, '' ),
+    $mustache:r-tag,
+    mustache:r-mustache( $mustache:r-csec, '' ) ) ;
 
 (: ~ parser :)
 declare function mustache:parse( $template ) {
   let $sections :=
     <multi> {
-    mustache:passthru-sections( fn:analyze-string($template, $sections ) )
+    mustache:passthru-sections( fn:analyze-string($template, $mustache:r-sections ) )
     } </multi>
   return <multi> { mustache:passthru( $sections ) } </multi> };
 
@@ -55,7 +55,7 @@ declare function mustache:passthru($nodes) {
 declare function mustache:dispatch( $node ) {
   typeswitch($node)
     case element(section) return <section>{$node/@*, mustache:passthru($node)}</section>
-    case text() return mustache:passthru-simple(fn:analyze-string($node/fn:string(), $mustaches))
+    case text() return mustache:passthru-simple(fn:analyze-string($node/fn:string(), $mustache:r-mustaches))
     default return mustache:passthru( $node ) } ;
 
 declare function mustache:passthru-simple( $nodes ) {
@@ -80,10 +80,10 @@ declare function mustache:escape-for-regexp( $s as xs:string ) {
 
 declare function mustache:r-mustache( $modifiers, $quantifier ){
   fn:concat( 
-    mustache:group( mustache:escape-for-regexp( $otag ) ), 
+    mustache:group( mustache:escape-for-regexp( $mustache:otag ) ), 
     mustache:group( $modifiers, $quantifier), 
-    $r-tag,
-    mustache:group( mustache:escape-for-regexp( $ctag ) ) ) };
+    $mustache:r-tag,
+    mustache:group( mustache:escape-for-regexp( $mustache:ctag ) ) ) };
 
 declare function mustache:group( $r ) {
   mustache:group($r, '') };
