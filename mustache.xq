@@ -65,7 +65,7 @@ declare function mustache:dispatch-simple( $node ) {
   typeswitch($node)
     case element(s:non-match) return <static>{$node/fn:string()}</static>
     case element(s:match) return <etag>
-      {attribute name {$node/s:group[@nr=3]},
+      {attribute name {fn:replace($node/s:group[@nr=3],'\}$', '')},
          let $modifier := $node/s:group[@nr=2]
          return if($modifier)
           then attribute modifier { $modifier/fn:string() }
@@ -75,8 +75,8 @@ declare function mustache:dispatch-simple( $node ) {
     default return $node };
 
 (: credit: http://www.xqueryfunctions.com/xq/functx_escape-for-regex.html :)
-declare function mustache:escape-for-regexp( $s as xs:string ) {
-  fn:replace($s,'(\.|\[|\]|\\|\||\-|\^|\$|\?|\*|\+|\{|\}|\(|\))','\\$1') };
+declare function mustache:escape-for-regexp( $strings ) {
+  for $s in $strings return fn:replace($s,'(\.|\[|\]|\\|\||\-|\^|\$|\?|\*|\+|\{|\}|\(|\))','\\$1') };
 
 declare function mustache:r-mustache( $modifiers, $quantifier ){
   fn:concat( 
