@@ -12,15 +12,15 @@ declare variable $mustache:ctag        := "}}" ;
 declare variable $mustache:oisec       := '^' ;
 declare variable $mustache:osec        := '#' ;
 declare variable $mustache:csec        := '/' ;
-declare variable $mustache:templ       := '&gt;' ;  (: > :)
-declare variable $mustache:unesc       := '&amp;' ; (: & :)
-declare variable $mustache:uneschtml   := '{' ;
+declare variable $mustache:comment     := '!' ;
+declare variable $mustache:templ       := ('&gt;', '&lt;') ;  (: > < :)
+declare variable $mustache:unesc       := ('{', '&amp;') ;    (: { & :)
 declare variable $mustache:r-tag       := '\s*(.+)\s*' ;
 declare variable $mustache:r-osec      := 
   fn:string-join( mustache:escape-for-regexp( ( $mustache:oisec, $mustache:osec ) ), "|" ) ;
 declare variable $mustache:r-csec      := mustache:escape-for-regexp( $mustache:csec ) ;
 declare variable $mustache:r-modifiers := 
-  fn:string-join( mustache:escape-for-regexp( ( $mustache:templ, $mustache:unesc, $mustache:uneschtml ) ), "|" ) ;
+  fn:string-join( mustache:escape-for-regexp( ( $mustache:templ, $mustache:unesc, $mustache:comment ) ), "|" ) ;
 declare variable $mustache:r-mustaches := 
   mustache:r-mustache( $mustache:r-modifiers, '*' ) ;
 declare variable $mustache:r-sections :=
@@ -43,10 +43,10 @@ declare function mustache:passthru-sections($nodes) {
 declare function mustache:dispatch-sections( $node ) {
   typeswitch($node)
     case element(s:non-match) return $node/fn:string()
-    case element(s:match) return <section> { 
-      if ($node/s:group[@nr=2]='#') then () else attribute type { "inverted" },
-      attribute name {$node/s:group[@nr=3]/fn:string()},
-      $node/s:group[@nr=5]/fn:string() } </section>
+    case element(s:match) return element 
+      { if ($node/s:group[@nr=2]='#') then 'section' else 'inverted-section' } 
+      { attribute name {$node/s:group[@nr=3]/fn:string() },
+      $node/s:group[@nr=5]/fn:string() }
     default return mustache:passthru-sections($node) };
 
 declare function mustache:passthru($nodes) {
@@ -55,6 +55,7 @@ declare function mustache:passthru($nodes) {
 declare function mustache:dispatch( $node ) {
   typeswitch($node)
     case element(section) return <section>{$node/@*, mustache:passthru($node)}</section>
+    case element(inverted-section) return <inverted-section>{$node/@*, mustache:passthru($node)}</inverted-section>
     case text() return mustache:passthru-simple(fn:analyze-string($node/fn:string(), $mustache:r-mustaches))
     default return mustache:passthru( $node ) } ;
 
@@ -64,13 +65,18 @@ declare function mustache:passthru-simple( $nodes ) {
 declare function mustache:dispatch-simple( $node ) {
   typeswitch($node)
     case element(s:non-match) return <static>{$node/fn:string()}</static>
-    case element(s:match) return <etag>
-      {attribute name {fn:replace($node/s:group[@nr=3],'\}$', '')},
-         let $modifier := $node/s:group[@nr=2]
-         return if($modifier)
-          then attribute modifier { $modifier/fn:string() }
-          else ()
-     }</etag>
+    case element(s:match) return 
+      let $modifier := $node/s:group[@nr=2]
+      return element {
+         if      ( $modifier = $mustache:comment ) then 'comment'
+         else if ( $modifier = $mustache:templ ) then 'partial'
+         else if ( $modifier = $mustache:unesc ) then 'utag'
+         else 'etag' }
+      { let $contents := $node/s:group[@nr=3]
+        return 
+          if ( $modifier = $mustache:comment )
+          then $contents/fn:string()
+          else attribute name { fn:normalize-space(fn:replace($contents,'\}$', '')) } } 
     case text() return $node
     default return $node };
 
