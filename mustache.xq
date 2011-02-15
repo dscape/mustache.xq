@@ -13,20 +13,22 @@ declare variable $mustache:oisec       := '^' ;
 declare variable $mustache:osec        := '#' ;
 declare variable $mustache:csec        := '/' ;
 declare variable $mustache:comment     := '!' ;
+declare variable $mustache:descendants := '*' ;
 declare variable $mustache:templ       := ('&gt;', '&lt;') ;  (: > < :)
 declare variable $mustache:unesc       := ('{', '&amp;') ;    (: { & :)
-declare variable $mustache:r-tag       := '\s*(.+)\s*' ;
+declare variable $mustache:r-tag       := '\s*(.+?)\s*' ;
+declare variable $mustache:r-stag       := '\s*(.+)\s*' ;
 declare variable $mustache:r-osec      := 
   fn:string-join( mustache:escape-for-regexp( ( $mustache:oisec, $mustache:osec ) ), "|" ) ;
 declare variable $mustache:r-csec      := mustache:escape-for-regexp( $mustache:csec ) ;
 declare variable $mustache:r-modifiers := 
-  fn:string-join( mustache:escape-for-regexp( ( $mustache:templ, $mustache:unesc, $mustache:comment ) ), "|" ) ;
+  fn:string-join( mustache:escape-for-regexp( ( $mustache:templ, $mustache:unesc, $mustache:comment, $mustache:descendants ) ), "|" ) ;
 declare variable $mustache:r-mustaches := 
   mustache:r-mustache( $mustache:r-modifiers, '*' ) ;
 declare variable $mustache:r-sections :=
   fn:concat(
     mustache:r-mustache( $mustache:r-osec, '' ),
-    $mustache:r-tag,
+    $mustache:r-stag,
     mustache:r-mustache( $mustache:r-csec, '' ) ) ;
 
 (: ~ parser :)
@@ -67,16 +69,22 @@ declare function mustache:dispatch-simple( $node ) {
     case element(s:non-match) return <static>{$node/fn:string()}</static>
     case element(s:match) return 
       let $modifier := $node/s:group[@nr=2]
+      let $contents := $node/s:group[@nr=3]
+      let $normalized-contents :=  fn:normalize-space(fn:replace($contents,'\}$', '')) 
+      let $is-section := fn:contains( $normalized-contents, '.' )
       return element {
-         if      ( $modifier = $mustache:comment ) then 'comment'
-         else if ( $modifier = $mustache:templ ) then 'partial'
-         else if ( $modifier = $mustache:unesc ) then 'utag'
-         else 'etag' }
-      { let $contents := $node/s:group[@nr=3]
-        return 
-          if ( $modifier = $mustache:comment )
+         if      ( $modifier = $mustache:comment )     then 'comment'
+         else if ( $modifier = $mustache:templ )       then 'partial'
+         else if ( $modifier = $mustache:unesc )       then 'utag'
+         else if ( $modifier = $mustache:descendants ) then 'rtag'
+         else if ( $is-section ) then 'etag'           else 'etag' } (: . notiation not supported yet :)
+      {  if ( $modifier = $mustache:comment )
           then $contents/fn:string()
-          else attribute name { fn:normalize-space(fn:replace($contents,'\}$', '')) } } 
+          else if ($modifier = ($mustache:templ,$mustache:unesc,$mustache:descendants)) 
+                   then attribute name { $normalized-contents }  
+                   else if ( $is-section )
+                        then attribute name { $normalized-contents } (: . notiation not supported yet :)
+                        else attribute name { $normalized-contents } }
     case text() return $node
     default return $node };
 

@@ -318,6 +318,92 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Two Sequencial Mustaches">
+      <template>{'I like going to the {{location}} because I find it {{verb}}'}</template>
+      <parseTree>
+        <multi> 
+          <static>I like going to the</static> 
+          <etag name="location"/> 
+          <static>because I find it</static> 
+          <etag name="verb"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Dot Notation">
+      <template>{'{{person.name}}'}</template>
+      <hash>{'{ "person": {
+        "name": "Chris",
+        "company": "<b>GitHub</b>"
+      } }'}</hash>
+      <output>{'Chris'}</output>
+      <parseTree>
+        <multi> 
+          <section name="person">
+            <etag name="name"/>
+          </section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Dot Notation 2">
+      <template>{'{{person.name.first}}'}</template>
+      <hash>{'{ "person": {
+        "name": {"first": "Chris"},
+        "company": "<b>GitHub</b>"
+      } }'}</hash>
+      <output>{'Chris'}</output>
+      <parseTree>
+        <multi> 
+          <section name="person">
+            <section name="name">
+              <etag name="first"/>
+            </section>
+          </section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Recursive Descendant">
+      <template>{'{{*name}}'}</template>
+      <hash>{'{ "person": {
+        "name": "Chris",
+        "company": "<b>GitHub</b>"
+      } }'}</hash>
+      <output>{'Chris'}</output>
+      <parseTree>
+        <multi> 
+          <rtag name="name"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Recursive Descendant 2">
+      <template>{'* {{*name}}'}</template>
+      <hash>{'{
+          "people": {
+              "person": {
+                  "name": "Chris"
+              },
+              "name": "Jan" 
+          } 
+      }'}</hash>
+      <output>{'* Chris Jan'}</output>
+      <parseTree>
+        <multi> 
+          <static>*</static> 
+          <rtag name="name"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <!-- tests from mustache.js -->
+    <test name="Apos">
+      <template>{'{{apos}}{{control}}'}</template>
+      <hash>{'{"apos": "&#39;", "control":"X")}'}</hash>
+      <output>{'&#39;X'}</output>
+      <parseTree>
+        <multi> 
+          <etag name="apos"/> 
+          <etag name="control"/> 
+        </multi>
+      </parseTree>
+    </test>
 <!--
     <test name="">
       <template>{''}</template>
@@ -333,6 +419,7 @@ declare variable $parser-tests :=
 declare function local:parser-test($template,$parseTree){
   xdmp:invoke('parser.xqy', (xs:QName('template'), $template, xs:QName('parseTree'), $parseTree)) };
 
+xdmp:set-response-content-type('application/xml'),
 <tests> {
 for $test at $i in $parser-tests/test
 let $template  := $test/template/fn:string()
