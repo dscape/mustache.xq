@@ -7,8 +7,8 @@
 xquery version "1.0" ;
 module namespace parser = "parser.xq" ;
 
-declare function parser:parse( $in as xs:string? ) {
-   parser:parseContent($in, "{{", "}}") };
+declare function parser:parse( $template ) {
+   parser:parseContent($template, "{{", "}}") };
 
 declare function parser:nextToken($in as xs:string?, $sdelim, $edelim) {
    if ( fn:starts-with( $in, $sdelim ) )
@@ -29,8 +29,8 @@ declare function parser:nextToken($in as xs:string?, $sdelim, $edelim) {
      let $le          := fn:string-length( $beforeEnd )
      return
        if( $ls ne 0 and $ls lt $le ) 
-       then ( <token token="{$beforeStart}" remain="{substring($in, $ls + 1)}"/> ) 
-       else ( <token token="{$beforeEnd}" remain="{substring($in, $le + 1)}"/> ) ) };
+       then ( <token token="{$beforeStart}" remain="{fn:substring($in, $ls + 1)}"/> ) 
+       else ( <token token="{$beforeEnd}" remain="{fn:substring($in, $le + 1)}"/> ) ) };
 
 declare function parser:parseContent($in as xs:string?, $sd, $ed) {
    let $r      := parser:nextToken( $in, $sd, $ed )
@@ -83,8 +83,8 @@ declare function parser:parseSection($in as xs:string?, $sd, $ed)
          else (
            let $r3 := parser:parseContent($remain2, $sd, $ed)
            let $r4 := parser:nextToken($r3/@remain, $sd, $ed)
-           let $token4 := $r4/@token/string()
-         let $remain4 := $r4/@remain/string()
+           let $token4 := $r4/@token/fn:string()
+         let $remain4 := $r4/@remain/fn:string()
          return
            if($token4 ne $token) 
            then ( fn:error( (), 
