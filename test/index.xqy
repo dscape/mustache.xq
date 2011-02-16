@@ -498,6 +498,225 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Null String">
+      <template>{'Hello {{name}}
+      glytch {{glytch}}
+      binary {{binary}}
+      value {{value}}
+      numeric {{numeric}}'}</template>
+      <hash>{'{
+        name: "Elise",
+        glytch: true,
+        binary: false,
+        value: null,
+        numeric: function() {
+          return NaN;
+        }'}</hash>
+      <output>{'Hello Elise
+      glytch true
+      binary false
+      value 
+      numeric NaN'}</output>
+      <parseTree>
+        <multi>
+          <static>Hello</static>
+          <etag name="name"/>
+          <static>glytch</static>
+          <etag name="glytch"/>
+          <static>binary</static>
+          <etag name="binary"/>
+          <static>value</static>
+          <etag name="value"/>
+          <static>numeric</static>
+          <etag name="numeric"/>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Partial Recursion">
+      <template>{'{{name}}
+      {{#kids}}
+      {{>partial}}
+      {{/kids}}'}</template>
+      <hash>{'{
+        name: "1",
+        kids: [ { 
+          name: "1.1",
+          children: [
+          {name: "1.1.1"} ] } ] }'}</hash>
+      <output>{'1
+      1.1
+      1.1.1'}</output>
+      <parseTree>
+        <multi>
+          <etag name="name"/>
+          <section name="kids">
+            <partial name="partial"/>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Recursion with same names">
+      <template>{'{{ name }}
+      {{ description }}
+
+      {{#terms}}
+        {{name}}
+        {{index}}
+      {{/terms}}'}</template>
+      <hash>{'{
+        name: "name",
+        description: "desc",
+        terms: [
+          {name: "t1", index: 0},
+          {name: "t2", index: 1} ] }'}</hash>
+      <output>{'name
+          desc
+            t1
+            0
+            t2
+            1'}</output>
+      <parseTree>
+        <multi>
+          <etag name="name"/>
+          <etag name="description"/>
+          <section name="terms">
+            <etag name="name"/>
+            <etag name="index"/>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Reuse of enumerables">
+      <template>{'{{#terms}}
+        {{name}}
+        {{index}}
+      {{/terms}}
+      {{#terms}}
+        {{name}}
+        {{index}}
+      {{/terms}}
+      '}</template>
+      <hash>{'{
+        terms: [
+          {name: "t1", index: 0},
+          {name: "t2", index: 1},
+        ]
+      }'}</hash>
+      <output>{'t1
+      0
+      t2
+      1
+      t1
+      0
+      t2
+      1'}</output>
+      <parseTree>
+        <multi>
+          <section name="terms">
+            <etag name="name"/>
+            <etag name="index"/>
+            <etag name="/terms"/>
+            <section name="terms"/>
+            <etag name="#terms"/>
+            <etag name="name"/>
+            <etag name="index"/>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Section as Context">
+      <template>{'{{#a_object}}
+        <h1>{{title}}</h1>
+        <p>{{description}}</p>
+        <ul>
+          {{#a_list}}
+          <li>{{label}}</li>
+          {{/a_list}}
+        </ul>
+      {{/a_object}}'}</template>
+      <hash>{'{
+        a_object: {
+          title: "this is an object",
+          description: "one of its attributes is a list",
+          a_list: [{label: "listitem1"}, {label: "listitem2"}]
+        }'}</hash>
+      <output>{'<h1>this is an object</h1>
+        <p>one of its attributes is a list</p>
+        <ul>
+              <li>listitem1</li>
+              <li>listitem2</li>
+          </ul>'}</output>
+      <parseTree>
+        <multi>
+          <section name="a_object">
+            <static>&lt;h1&gt;</static>
+            <etag name="title"/>
+            <static>&lt;/h1&gt; &lt;p&gt;</static>
+            <etag name="description"/>
+            <static>&lt;/p&gt; &lt;ul&gt;</static>
+            <section name="a_list">
+              <static>&lt;li&gt;</static>
+              <etag name="label"/>
+              <static>&lt;/li&gt;</static>
+            </section>
+            <static>&lt;/ul&gt;</static>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Template Partial">
+      <template>{'<h1>{{title}}</h1>
+      {{>partial}}'}</template>
+      <hash>{'{
+        title: function() {
+          return "Welcome";
+        },
+        partial: {
+          again: "Goodbye"
+        }
+      }'}</hash>
+      <output>{'<h1>Welcome</h1>
+      Again, Goodbye!'}</output>
+      <parseTree>
+        <multi>
+          <static>&lt;h1&gt;</static>
+          <etag name="title"/>
+          <static>&lt;/h1&gt;</static>
+          <partial name="partial"/>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Two in a row">
+      <template>{'{{greeting}}, {{name}}!'}</template>
+      <hash>{'{
+        name: "Joe",
+        greeting: "Welcome" }'}</hash>
+      <output>{'Welcome, Joe!'}</output>
+      <parseTree>
+        <multi>
+          <etag name="greeting"/>
+          <static>,</static>
+          <etag name="name"/>
+          <static>!</static>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Unescaped H1">
+      <template>{'<h1>{{{title}}}</h1>'}</template>
+      <hash>{'{
+        title: function() {
+          return "Bear > Shark";
+        }
+      }'}</hash>
+      <output>{'<h1>Bear > Shark</h1>'}</output>
+      <parseTree>
+        <multi>
+        <static>&lt;h1&gt;</static>
+        <utag name="title"/>
+        <static>&lt;/h1&gt;</static>
+        </multi>
+      </parseTree>
+    </test>
 <!--
     <test name="">
       <template>{''}</template>
