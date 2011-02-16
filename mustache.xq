@@ -42,10 +42,10 @@ declare function mustache:parse( $template ) {
   let $simple   := <multi> { mustache:passthru( $sections ) } </multi>
   let $fixedNestedSections := 
     let $etagsToBeFixed := $simple/etag [fn:starts-with(@name, $mustache:osec) or fn:starts-with(@name, $mustache:oisec)]
-    return <multi>{ mustache:fixSections($simple/*, $etagsToBeFixed ) }</multi>
+    return <multi>{ mustache:fixSections($simple/*, $etagsToBeFixed, (), () ) }</multi>
   return $fixedNestedSections };
 
-declare function  mustache:fixSections($seq, $etagsToBeFixed ) {
+declare function  mustache:fixSections($seq, $etagsToBeFixed, $before, $after ) {
   let $currentSection := $etagsToBeFixed [1]
   return 
     if ($currentSection)
@@ -55,13 +55,15 @@ declare function  mustache:fixSections($seq, $etagsToBeFixed ) {
       return
         if ( $closingSection )
         then
-          let $beforeClose    := $closingSection/preceding-sibling::*
-          let $afterOpen      := $currentSection/following-sibling::*
-          let $childs         := $followingOpen intersect $beforeClose
+          let $beforeClose    := $closingSection/preceding-sibling::*,
+              $afterClose     := $closingSection/following-sibling::* [if($after) then . << $after else fn:true()],
+              $beforeOpen     := $currentSection/preceding-sibling::* [if($before) then . >> $before else fn:true()],
+              $afterOpen      := $currentSection/following-sibling::*,
+              $childs         := $afterOpen intersect $beforeClose
           return 
-            <section name="{$name}"> { 
-              mustache:fixSections( $childs, ( $etagsToBeFixed except $currentSection ) ) }
-            </section>
+             ($beforeOpen, <section name="{$name}"> {
+              mustache:fixSections( $childs, ( $etagsToBeFixed except $currentSection ), $currentSection,  $closingSection ) }
+            </section>, $afterClose)
         else fn:error( (),  fn:concat( "no end of section for: ", $name ) )
     else $seq };
 

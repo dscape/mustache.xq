@@ -387,7 +387,7 @@ declare variable $parser-tests :=
       <output>{'* Chris Jan'}</output>
       <parseTree>
         <multi> 
-          <static>*</static> 
+          <static>*</static>
           <rtag name="name"/> 
         </multi>
       </parseTree>
@@ -481,7 +481,9 @@ declare variable $parser-tests :=
       <parseTree>
         <multi>
           <section name="book">
+            <static/>
             <section name="section">
+              <static/>
               <section name="section">
                 <static/>
                 <section name="section">
@@ -489,7 +491,9 @@ declare variable $parser-tests :=
                 </section>
                 <static/>
               </section>
+              <static/>
             </section>
+            <static/>
           </section>
         </multi>
       </parseTree>

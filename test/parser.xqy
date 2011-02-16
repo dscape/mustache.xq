@@ -11,9 +11,9 @@ declare function local:canonicalize($nodes) {
 
 declare function local:dispatch( $node ) {
   typeswitch($node)
-    case element()   return element   {fn:node-name($node)} { $node/@*, local:canonicalize($node) }
-    case text() return fn:normalize-space($node)
-    default return local:canonicalize( $node ) } ;
+    case element()       return element   {fn:node-name($node)} { $node/@*, local:canonicalize($node) }
+    case text()          return fn:normalize-space($node)
+    default              return local:canonicalize( $node ) } ;
 
 let $mres  := local:canonicalize(document { mustache:parse($template) })
 let $ptree := local:canonicalize(document { $parseTree })
