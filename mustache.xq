@@ -14,4 +14,4 @@ declare function mustache:parse( $template ) {
   parser:parse( $template) } ;
 
 declare function mustache:compile($parseTree, $json) {
-  compiler:compile( $parseTree, $json, () ) } ;
+  compiler:compile( $parseTree, $json ) } ;

@@ -9,7 +9,7 @@ declare variable $parser-tests :=
       <parseTree>
         <multi>
           <static>Hello </static>
-          <etag name="world"/>
+          <etag name="word"/>
         </multi>
       </parseTree>
     </test>
@@ -49,7 +49,7 @@ declare variable $parser-tests :=
         Never shown!
       {{/ nothin}}'}</template>
       <hash>{'{
-        "person": true,
+        "person": true
       }'}</hash>
       <output>{'Shown.'}</output>
       <parseTree>
@@ -62,19 +62,16 @@ declare variable $parser-tests :=
       </parseTree>
     </test>
     <test name="Manual First Section">
-      <template>{'Hello {{name}}
-      You have just won ${{value}}!
-      {{#in_ca}}
-      Well, ${{taxed_value}}, after taxes.
+      <template>{'Hello {{name}} You have just won ${{value}}! 
+      {{#in_ca}} Well, 
+        ${{taxed_value}}, after taxes.
       {{/in_ca}}'}</template>
       <hash>{'{
         "name": "Chris",
         "value": 10000,
         "taxed_value": 10000 - (10000 * 0.4),
         "in_ca": true }'}</hash>
-      <output>{'Hello Chris
-        You have just won $10000!
-        Well, $6000.0, after taxes.'}</output>
+      <output>{'Hello ChrisYou have just won $10000!Well, $6000, after taxes.'}</output>
       <parseTree>
         <multi>
           <static>Hello </static>
@@ -740,7 +737,8 @@ declare function local:compiler-test( $parseTree, $hash, $output ) {
 
 xdmp:set-response-content-type('application/xml'),
 <tests> {
-for $test at $i in $parser-tests/test 
+for $test at $i in $parser-tests/test
+return try {
 let $template       := $test/template/fn:string()
 let $hash           := $test/hash/fn:string()
 let $output         := $test/output/fn:string()
@@ -775,5 +773,5 @@ return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
                 <p> Got: {$outputCompiler} </p>
               </compileTestExplanation>
            else ()}
-       </test>
+       </test> } catch ($e) { <test i="{$i}">{xdmp:log($e),fn:string($test/@name)} Failed with exception</test> }
 } </tests>
