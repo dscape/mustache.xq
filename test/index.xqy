@@ -3,7 +3,9 @@ xquery version "1.0-ml" ;
 declare variable $parser-tests :=
   <tests>
     <test name="Simple Mustache">
-      <template>{'Hello {{world}}'}</template>
+      <template>{'Hello {{word}}'}</template>
+      <hash>{'{"word": "world"}'}</hash>
+      <output>{'Hello world'}</output>
       <parseTree>
         <multi>
           <static>Hello </static>
@@ -729,26 +731,49 @@ declare variable $parser-tests :=
 -->
   </tests> ;
   
-declare function local:parser-test($template,$parseTree){
-  xdmp:invoke('run-parser.xqy', (xs:QName('template'), $template, xs:QName('parseTree'), $parseTree)) };
+declare function local:parser-test( $template, $parseTree ) {
+  xdmp:invoke( 'run-parser.xqy', ( xs:QName( 'template' ), $template, xs:QName( 'parseTree' ), $parseTree ) ) };
+
+declare function local:compiler-test( $parseTree, $hash, $output ) {
+    xdmp:invoke( 'run-compiler.xqy', ( xs:QName( 'parseTree' ), $parseTree, xs:QName( 'hash' ), $hash,
+      xs:QName( 'output' ), $output ) ) };
 
 xdmp:set-response-content-type('application/xml'),
 <tests> {
 for $test at $i in $parser-tests/test 
-let $template  := $test/template/fn:string()
-let $parseTree := $test/parseTree/*
-let $result    := local:parser-test( $template,$parseTree )
-let $valid     := $result [1]
-let $mTree     := $result [2]
+let $template       := $test/template/fn:string()
+let $hash           := $test/hash/fn:string()
+let $output         := $test/output/fn:string()
+let $parseTree      := $test/parseTree/*
+let $result         := local:parser-test( $template,$parseTree )
+let $valid          := $result [1]
+let $mTree          := $result [2]
+let $compilerTest   := $hash and $output and $parseTree
+let $compiled       := if($compilerTest) then local:compiler-test( $parseTree, $hash, $output ) else ()
+let $validCompiler  := $compiled [1]
+let $outputCompiler := $compiled [2]
 return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
+         { if($compilerTest) then attribute compileTest {if($validCompiler) then 'ok' else 'NOK'} else () }
          { fn:string($test/@name)} 
          { if($valid) then ()
            else 
              <parseTestExplanation> 
-               {xdmp:log((fn:concat($i, ' >> ', $template), $parseTree,$mTree))}
-               Template: {$template}
-               Expected: {$parseTree}
-               Got: {$mTree}
+               {xdmp:log((fn:concat($i, ' >> parse: ')))}
+               <p> Template: {$template} </p>
+               <p> Expected: {$parseTree} </p>  
+               <p> Got: {$mTree} </p>
              </parseTestExplanation>}
+         { if ($compilerTest) 
+           then if($validCompiler) then ()
+           else 
+              <compileTestExplanation> 
+                {xdmp:log((fn:concat($i, ' >> compile: ')))}
+                <p> Template: {$template} </p>
+                <p> parseTree: {$parseTree} </p>
+                <p> Hash: {$hash} </p>
+                <p> Expected: {$output} </p>
+                <p> Got: {$outputCompiler} </p>
+              </compileTestExplanation>
+           else ()}
        </test>
 } </tests>

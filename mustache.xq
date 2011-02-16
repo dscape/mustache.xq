@@ -5,8 +5,13 @@
 xquery version "1.0" ;
 module namespace mustache = "mustache.xq" ;
 
-import module namespace parser = "parser.xq"
+import module namespace parser   = "parser.xq"
   at "lib/parser-regexp.xq" ;
+import module namespace compiler = "compiler.xq"
+  at "lib/compiler.xqy" ;
 
 declare function mustache:parse( $template ) {
   parser:parse( $template) } ;
+
+declare function mustache:compile($parseTree, $json) {
+  compiler:compile( $parseTree, $json, () ) } ;
