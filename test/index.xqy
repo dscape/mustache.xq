@@ -511,11 +511,11 @@ declare variable $parser-tests :=
   </tests> ;
   
 declare function local:parser-test($template,$parseTree){
-  xdmp:invoke('parser.xqy', (xs:QName('template'), $template, xs:QName('parseTree'), $parseTree)) };
+  xdmp:invoke('run-parser.xqy', (xs:QName('template'), $template, xs:QName('parseTree'), $parseTree)) };
 
 xdmp:set-response-content-type('application/xml'),
 <tests> {
-for $test at $i in $parser-tests/test
+for $test at $i in $parser-tests/test 
 let $template  := $test/template/fn:string()
 let $parseTree := $test/parseTree/*
 let $result    := local:parser-test( $template,$parseTree )
