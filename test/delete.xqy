@@ -1,10 +1,10 @@
 import module namespace compiler = "compiler.xq"
- at "../lib/compiler.xq";
+ at "../lib/compiler.xqy";
  
 let $parseTree :=
 <multi>
   <static>Hello </static>
-  <etag name="world"/>
+  <etag name="word"/>
 </multi>
 let $json := 
 '{"word": "world"}'

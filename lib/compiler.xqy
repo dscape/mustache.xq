@@ -13,15 +13,15 @@ declare function compiler:compile( $parseTree, $json ) {
   compiler:compile-xpath( $parseTree, json:jsonToXML( $json ) ) } ;
 
 declare function compiler:compile-xpath( $parseTree, $json ) {
-  compiler:compile-xpath( $parseTree, $json, '' ) 
+  compiler:compile-xpath( $parseTree, $json, 'json/' ) 
 };
 declare function compiler:compile-xpath( $parseTree, $json, $xpath ) { 
   for $node in $parseTree/node() return compiler:compile-node( $node, $json, $xpath ) } ;
 
 declare function compiler:compile-node( $node, $json, $xpath ) {
-  xdmp:log(fn:concat('$json/',$node/@name,'[1]')),
+  xdmp:log(fn:concat('$json/', $xpath, $node/@name,'[1]')),
   typeswitch($node)
     case element(etag)   return 
-      xdmp:unpath(fn:concat('$json/',$node/@name,'[1]'))
+      fn:string(xdmp:unpath(fn:concat('$json/', $xpath, $node/@name,'[1]')))
     case text()          return $node
     default return compiler:compile-xpath( $node, $json ) }; 
