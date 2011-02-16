@@ -1,145 +1,202 @@
 (:
   XQuery Recursive Descent Parser for mustache
 
-  Copyright John Snelson 
+  Copyright 2011 John Snelson 
   twitter: @jpcs
 :)
-xquery version "1.0" ;
-module namespace parser = "parser.xq" ;
+xquery version "1.0";
+module namespace parser = "parser.xq";
+declare default function namespace "parser.xq";
 
-declare function parser:parse( $template ) {
-   parser:parseContent($template, "{{", "}}") };
+declare variable $parser:_EOF_ := 0;
+declare variable $parser:_START_SECTION_ := 1;
+declare variable $parser:_START_INVERT_ := 2;
+declare variable $parser:_START_END_ := 3;
+declare variable $parser:_START_VAR_ := 4;
+declare variable $parser:_START_COMMENT_ := 5;
+declare variable $parser:_START_PARTIAL_ := 6;
+declare variable $parser:_START_DELIM_ := 7;
+declare variable $parser:_START_TRIPLE_ := 8;
+declare variable $parser:_START_UNESCAPE_ := 9;
+declare variable $parser:_END_ := 10;
+declare variable $parser:_STRING_ := 11;
 
-declare function parser:parseContent($in as xs:string?, $sd, $ed) {
-   let $r      := parser:nextToken( $in, $sd, $ed )
-   let $token  := $r/@token/fn:string()
+declare function parse( $template ) {
+   parseContent($template, "{{", "}}")
+};
+
+declare function parseContent($in as xs:string?, $sd as xs:string, $ed as xs:string)
+{
+   let $r      := nextToken( $in, $sd, $ed )
+   let $token  := $r/@token/fn:number()
    let $remain := $r/@remain/fn:string()
    return
-     if ( $token eq "" ) 
-     then (element multi { attribute remain { "" } }) 
-     else if ( $token eq "{{#" or $token eq "{{^") 
-     then (
-       let $r1 := parser:parseSection( $remain, fn:substring($token,3,1), $sd, $ed )
-       let $r2 := parser:parseContent( $r1/@remain, $sd, $ed )
-       return element multi { $r2/@remain, $r1/node(), $r2/node() } ) 
-     else if ( $token eq "{{" ) 
-     then (
-       let $r1 := parser:parseETag( $remain, $sd, $ed )
-       let $r2 := parser:parseContent( $r1/@remain, $sd, $ed )
-       return element multi { $r2/@remain, $r1/node(), $r2/node() } ) 
-     else if ( $token eq "{{/" ) 
-     then (element multi { attribute remain { $remain } }) 
-     else if ( $token eq "}}" ) 
-     then ( fn:error( (), "bad content }}" ) ) 
-     else (
-       let $r1 := parser:parseContent( $remain, $sd, $ed )
-       return element multi { $r1/@remain, element static { $token }, $r1/node() } ) };
+     if($token eq $parser:_EOF_) then
+       element multi { attribute remain { "" } }
+     else if($token eq $parser:_START_SECTION_ or
+             $token eq $parser:_START_INVERT_) then
+       let $r1 := parseSection( $remain, $token, $sd, $ed )
+       let $r2 := parseContent( $r1/@remain, $sd, $ed )
+       return element multi { $r2/@remain, $r1/node(), $r2/node() }
+     else if($token eq $parser:_START_VAR_ or
+             $token eq $parser:_START_COMMENT_ or
+             $token eq $parser:_START_PARTIAL_ or
+             $token eq $parser:_START_UNESCAPE_) then
+       let $r1 := parseETag( $remain, $token, $sd, $ed )
+       let $r2 := parseContent( $r1/@remain, $sd, $ed )
+       return element multi { $r2/@remain, $r1/node(), $r2/node() }
+     else if($token eq $parser:_START_TRIPLE_) then
+       let $r1 := parseETag( $remain, $token, $sd, fn:concat("}", $ed) )
+       let $r2 := parseContent( $r1/@remain, $sd, $ed )
+       return element multi { $r2/@remain, $r1/node(), $r2/node() }
+     else if($token eq $parser:_START_DELIM_) then
+       let $r1 := fn:trace(parseDelim( $remain, $sd, fn:concat("=", $ed) ), "parseDelim")
+       let $r2 := parseContent( $r1/@remain, $r1/@start, $r1/@end )
+       return element multi { $r2/@remain, $r2/node() }
+     else if($token eq $parser:_START_END_) then
+       element multi { attribute remain { $remain } }
+     else if($token eq $parser:_STRING_) then
+       let $r1 := parseContent( $remain, $sd, $ed )
+       return element multi { $r1/@remain, text { $r/@value }, $r1/node() }
+     else error($r)
+};
 
-declare function parser:nextToken($in as xs:string?, $sdelim, $edelim) {
-   if ( fn:starts-with( $in, $sdelim ) )
-   then (
-     let $nextc := fn:substring( $in, 3, 1 )
-     return
-       if ( $nextc eq "#" ) 
-       then ( <token token="{{{{#" remain="{fn:substring($in, 4)}"/> )
-       else if ( $nextc eq "^" ) 
-       then ( <token token="{{{{^" remain="{fn:substring($in, 4)}"/> )
-       else if( $nextc eq "/" ) 
-       then ( <token token="{{{{/" remain="{fn:substring($in, 4)}"/> ) 
-       else ( <token token="{{{{" remain="{fn:substring($in, 3)}"/> ) )
-   else if( fn:starts-with( $in, $edelim ) ) 
-   then ( <token token="}}}}" remain="{fn:substring($in, 3)}"/> ) 
-   else (
-     let $beforeStart := fn:substring-before( $in, $sdelim )
-     let $beforeEnd   := fn:substring-before( $in, $edelim )
-     let $ls          := fn:string-length( $beforeStart )
-     let $le          := fn:string-length( $beforeEnd )
-     return
-       if( $ls ne 0 and $ls lt $le ) 
-       then ( <token token="{$beforeStart}" remain="{fn:substring($in, $ls + 1)}"/> ) 
-       else ( <token token="{$beforeEnd}" remain="{fn:substring($in, $le + 1)}"/> ) ) };
+declare function token($token, $in, $length)
+{
+  <token token="{$token}" value="{fn:substring($in,1,$length)}"
+    remain="{fn:substring($in, $length + 1)}"/>
+};
 
-declare function parser:parseSection($in as xs:string?, $n, $sd, $ed) {
-   let $r      := parser:nextToken($in, $sd, $ed)
-   let $token  := $r/@token/fn:string()
+declare function nextToken($in as xs:string?, $sdelim, $edelim)
+{
+  fn:trace(nextToken_($in, $sdelim, $edelim), "token:")
+};
+
+declare function nextToken_($in as xs:string?, $sdelim as xs:string, $edelim as xs:string)
+{
+  if(fn:starts-with($in, $sdelim)) then
+    let $nextc := fn:substring($in, 3, 1)
+    let $slen := fn:trace(fn:string-length($sdelim), "slen")
+    return
+      if($nextc eq "#") then token($parser:_START_SECTION_, $in, $slen + 1)
+      else if($nextc eq "^") then token($parser:_START_INVERT_, $in, $slen + 1)
+      else if($nextc eq "/") then token($parser:_START_END_, $in, $slen + 1)
+      else if($nextc eq "!") then token($parser:_START_COMMENT_, $in, $slen + 1)
+      else if($nextc eq ">") then token($parser:_START_PARTIAL_, $in, $slen + 1)
+      else if($nextc eq "=") then token($parser:_START_DELIM_, $in, $slen + 1)
+      else if($nextc eq "{") then token($parser:_START_TRIPLE_, $in, $slen + 1)
+      else if($nextc eq "&amp;") then token($parser:_START_UNESCAPE_, $in, $slen + 1)
+      else token($parser:_START_VAR_, $in, $slen)
+  else if(fn:starts-with($in, $edelim)) then
+    token($parser:_END_, $in, fn:string-length($edelim))
+  else
+    let $ls := fn:string-length(fn:substring-before($in, $sdelim))
+    let $le := fn:string-length(fn:substring-before($in, $edelim))
+    let $li := fn:string-length($in)
+    return
+      if($ls ne 0 and $ls lt $le) then token($parser:_STRING_, $in, $ls)
+      else if($le ne 0) then token($parser:_STRING_, $in, $le)
+      else if($li ne 0) then token($parser:_STRING_, $in, $li)
+      else token($parser:_EOF_, "", 0)
+};
+
+declare function error($token)
+{
+  fn:error(xs:QName("parser:ERR001"),
+    fn:concat("Unexpected token: """, $token/@value, """"))
+};
+
+declare function parseSection($in as xs:string?, $n, $sd as xs:string, $ed as xs:string)
+{
+   let $r      := nextToken($in, $sd, $ed)
+   let $token  := $r/@token/fn:number()
    let $remain := $r/@remain/fn:string()
    return
-     if ( $token eq "" ) 
-     then ( fn:error( (), "no tokens" ) ) 
-     else if ( $token eq "{{#" ) 
-     then ( fn:error( (), "bad start section {{#" ) )
-     else if ( $token eq "{{^" ) 
-     then ( fn:error( (), "bad start section {{^" ) )
-     else if ( $token eq "{{" ) 
-     then ( fn:error( (), "bad start section {{" ) ) 
-     else if ( $token eq "{{/" ) 
-     then ( fn:error( (), "bad start section {{/" ) ) 
-     else if ( $token eq "}}" ) 
-     then ( fn:error( (), "bad start section }} ") ) 
-     else (
-       let $r2 := parser:nextToken($remain, $sd, $ed)
-       let $token2 := $r2/@token/fn:string()
+     if($token eq $parser:_STRING_) then
+       let $r2      := nextToken($remain, $sd, $ed)
+       let $token2  := $r2/@token/fn:number()
        let $remain2 := $r2/@remain/fn:string()
        return
-         if ( $token2 ne "}}" )
-         then ( fn:error( (), "bad start section not }}" ) ) 
-         else (
-           let $r3 := parser:parseContent($remain2, $sd, $ed)
-           let $r4 := parser:nextToken($r3/@remain, $sd, $ed)
-           let $token4 := $r4/@token/fn:string()
-         let $remain4 := $r4/@remain/fn:string()
-         return
-           if($token4 ne $token) 
-           then ( fn:error( (), 
-             fn:concat( "mismatched sections: ", $token, " and ", $token4 ) ) ) 
-             else (
-               let $r5 := parser:nextToken($remain4, $sd, $ed)
-               let $token5 := $r5/@token/fn:string()
+         if($token2 eq $parser:_END_) then
+           let $r3      := parseContent($remain2, $sd, $ed)
+           let $r4      := nextToken($r3/@remain, $sd, $ed)
+           let $token4  := $r4/@token/fn:number()
+           let $remain4 := $r4/@remain/fn:string()
+           return
+             if($r4/@value ne $r/@value) then
+               fn:error(xs:QName("parser:ERR002"),
+                 fn:concat("mismatched sections: ", $r/@value, " and ", $r4/@value))
+             else
+               let $r5 := nextToken($remain4, $sd, $ed)
+               let $token5 := $r5/@token/fn:number()
                let $remain5 := $r5/@remain/fn:string()
                return
-                 if( $token5 ne "}}" ) 
-                 then ( fn:error( (), "bad end section not }}" ) ) 
-                 else element multi {
-                   attribute remain { $remain5 },
-                   element {if($n='#') then 'section' else 'inverted-section'} {
-                     attribute name { fn:normalize-space($token) },
-                     $r3/node() } } ) ) ) };
+                 if($token5 eq $parser:_END_) then
+                   element multi {
+                     attribute remain { $remain5 },
+                     element {
+                       if($n eq $parser:_START_SECTION_) then "section"
+                       else "inverted-section"
+                     } {
+                       attribute name { fn:normalize-space($r/@value) },
+                       $r3/node()
+                     }
+                   }
+                 else error($r5)
+         else error($r2)
+     else error($r)
+};
 
-declare function parser:parseETag($in as xs:string?, $sd, $ed) {
-   let $r := parser:nextToken($in, $sd, $ed)
-   let $token := $r/@token/fn:string()
+declare function parseETag($in as xs:string?, $n, $sd as xs:string, $ed as xs:string) {
+   let $r := nextToken($in, $sd, $ed)
+   let $token := $r/@token/fn:number()
    let $remain := $r/@remain/fn:string()
    return
-     if ( $token eq "" )         then ( fn:error((), "no tokens") ) 
-     else if ( $token eq "{{#" ) then ( fn:error((), "bad subst {{#" ) ) 
-     else if ( $token eq "{{^" ) then ( fn:error((), "bad subst {{^" ) ) 
-     else if ( $token eq "{{&amp;" ) then ( fn:error((), "bad subst {{&amp;" ) ) 
-     else if ( $token eq "{{<" ) then ( fn:error((), "bad subst {{<" ) ) 
-     else if ( $token eq "{{*" ) then ( fn:error((), "bad subst {{*" ) ) 
-     else if ( $token eq "{{{" ) then ( fn:error((), "bad subst {{{" ) ) 
-     else if ( $token eq "{{!" ) then ( fn:error((), "bad subst {{!" ) ) 
-     else if ( $token eq "{{>" ) then ( fn:error((), "bad subst {{>" ) ) 
-     else if ( $token eq "{{"  ) then ( fn:error((), "bad subst {{") ) 
-     else if ( $token eq "{{/" ) then ( fn:error((), "bad subst {{/") ) 
-     else if ( $token eq "}}"  ) then ( fn:error((), "bad subst }}") ) 
-     else (
-       let $r2 := parser:nextToken($remain, $sd, $ed)
-       let $token2 := $r2/@token/fn:string()
+     if($token eq $parser:_STRING_) then
+       let $r2 := nextToken($remain, $sd, $ed)
+       let $token2 := $r2/@token/fn:number()
        let $remain2 := $r2/@remain/fn:string()
-     return
-       if( $token2 ne "}}" ) then ( fn:error((), "bad subst not }}" ) ) 
-       else 
-         let $analyze-string := fn:analyze-string($token, '(>|<|!|\{|&amp;|\*)*\s*(.+)\s*')
-         let $name := fn:normalize-space($analyze-string//*:group[@nr=2]/fn:string())
-         let $operator := fn:normalize-space($analyze-string//*:group[@nr=1]/fn:string())
-         return (element multi {
-           attribute remain { $remain2 },
-           element {
-             if($operator='>' or $operator='<') then 'partial'
-             else if($operator='!') then 'comment'
-             else if($operator='*') then 'rtag'
-             else if($operator='{' or $operator='&amp;') then 'utag'
-             else 'etag'
-           } 
-           { if($operator='!') then text{ $name } else
-             attribute name { $name } } } ) ) };
+       return
+         if($token2 eq $parser:_END_) then
+           element multi {
+             attribute remain { $remain2 },
+             element {
+               if($n eq $parser:_START_PARTIAL_) then 'partial'
+               else if($n eq $parser:_START_COMMENT_) then 'comment'
+               (: else if($operator='*') then 'rtag' :)
+               else if($n eq $parser:_START_UNESCAPE_ or
+                       $n eq $parser:_START_TRIPLE_) then 'utag'
+               else 'etag'
+             } {
+               if($n eq $parser:_START_COMMENT_) then text{ $r/@value }
+               else attribute name { fn:normalize-space($r/@value) }
+             }
+           }
+         else error($r2)
+     else error($r)
+};
+
+declare function parseDelim($in as xs:string?, $sd as xs:string, $ed as xs:string) {
+   let $r := nextToken($in, $sd, $ed)
+   let $token := $r/@token/fn:number()
+   let $remain := $r/@remain/fn:string()
+   return
+     if($token eq $parser:_STRING_) then
+       let $r2 := nextToken($remain, $sd, $ed)
+       let $token2 := $r2/@token/fn:number()
+       let $remain2 := $r2/@remain/fn:string()
+       return
+         if($token2 eq $parser:_END_) then
+           let $delims := fn:trace(fn:tokenize(fn:normalize-space($r/@value), "\s+"), "delims")
+           return
+             if(fn:count($delims) ne 2) then
+               fn:error(xs:QName("parser:ERR003"),
+                 fn:concat("Invalid delimeter syntax: """, $r/@value, """"))
+             else element delims {
+               attribute remain { $remain2 },
+               attribute start { $delims[1] },
+               fn:trace(attribute end { $delims[2] }, "end")
+             }
+         else error($r2)
+     else error($r)
+};
