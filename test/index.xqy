@@ -418,7 +418,7 @@ declare variable $parser-tests :=
     <test name="Whitespace">
       <template>{'{{tag}} foo'}</template>
       <hash>{'{ "tag": "yo" }'}</hash>
-      <output>{'yo foo'}</output>
+      <output>{'yofoo'}</output>
       <parseTree>
         <multi>
           <etag name="tag"/>
@@ -690,7 +690,7 @@ declare variable $parser-tests :=
       <hash>{'{
         name: "Joe",
         greeting: "Welcome" }'}</hash>
-      <output>{'Welcome, Joe!'}</output>
+      <output>{'Welcome,Joe!'}</output>
       <parseTree>
         <multi>
           <etag name="greeting"/>
