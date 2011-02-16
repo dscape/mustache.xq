@@ -17,10 +17,12 @@ declare variable $mustache:descendants := '*' ;
 declare variable $mustache:templ       := ('&gt;', '&lt;') ;  (: > < :)
 declare variable $mustache:unesc       := ('{', '&amp;') ;    (: { & :)
 declare variable $mustache:r-tag       := '\s*(.+?)\s*' ;
-declare variable $mustache:r-stag       := '\s*(.+)\s*' ;
 declare variable $mustache:r-osec      := 
   fn:string-join( mustache:escape-for-regexp( ( $mustache:oisec, $mustache:osec ) ), "|" ) ;
 declare variable $mustache:r-csec      := mustache:escape-for-regexp( $mustache:csec ) ;
+declare variable $mustache:r-sec := 
+  fn:concat($mustache:r-osec, '|', $mustache:r-csec) ;
+
 declare variable $mustache:r-modifiers := 
   fn:string-join( mustache:escape-for-regexp( ( $mustache:templ, $mustache:unesc, $mustache:comment, $mustache:descendants ) ), "|" ) ;
 declare variable $mustache:r-mustaches := 
@@ -28,7 +30,7 @@ declare variable $mustache:r-mustaches :=
 declare variable $mustache:r-sections :=
   fn:concat(
     mustache:r-mustache( $mustache:r-osec, '' ),
-    $mustache:r-stag,
+    $mustache:r-tag,
     mustache:r-mustache( $mustache:r-csec, '' ) ) ;
 
 (: ~ parser :)
@@ -37,7 +39,31 @@ declare function mustache:parse( $template ) {
     <multi> {
     mustache:passthru-sections( fn:analyze-string($template, $mustache:r-sections ) )
     } </multi>
-  return <multi> { mustache:passthru( $sections ) } </multi> };
+  let $simple   := <multi> { mustache:passthru( $sections ) } </multi>
+  let $fixedNestedSections := 
+    let $etagsToBeFixed := $simple/etag [fn:starts-with(@name, $mustache:osec) or fn:starts-with(@name, $mustache:oisec)]
+    return <multi>{ mustache:fixSections($simple/*, $etagsToBeFixed ) }</multi>
+  return $fixedNestedSections };
+
+declare function  mustache:fixSections($seq, $etagsToBeFixed ) {
+  let $currentSection := $etagsToBeFixed [1]
+  return 
+    if ($currentSection)
+    then
+      let $name           := fn:replace( $currentSection/@name, $mustache:r-sec, '')
+      let $closingSection := $seq [ fn:matches( @name, fn:concat( '/\s*',$name,'\s*' ) ) ] [ fn:last() ]
+      return
+        if ( $closingSection )
+        then
+          let $beforeClose    := $closingSection/preceding-sibling::*
+          let $afterOpen      := $currentSection/following-sibling::*
+          let $childs         := $followingOpen intersect $beforeClose
+          return 
+            <section name="{$name}"> { 
+              mustache:fixSections( $childs, ( $etagsToBeFixed except $currentSection ) ) }
+            </section>
+        else fn:error( (),  fn:concat( "no end of section for: ", $name ) )
+    else $seq };
 
 declare function mustache:passthru-sections($nodes) {
   for $node in $nodes/node() return mustache:dispatch-sections($node) };
@@ -92,11 +118,14 @@ declare function mustache:dispatch-simple( $node ) {
 declare function mustache:escape-for-regexp( $strings ) {
   for $s in $strings return fn:replace($s,'(\.|\[|\]|\\|\||\-|\^|\$|\?|\*|\+|\{|\}|\(|\))','\\$1') };
 
-declare function mustache:r-mustache( $modifiers, $quantifier ){
+declare function mustache:r-mustache( $modifiers, $quantifier ) {
+  mustache:r-mustache( $modifiers, $quantifier, $mustache:r-tag) } ;
+
+declare function mustache:r-mustache( $modifiers, $quantifier, $r-tag ) {
   fn:concat( 
     mustache:group( mustache:escape-for-regexp( $mustache:otag ) ), 
     mustache:group( $modifiers, $quantifier), 
-    $mustache:r-tag,
+    $r-tag,
     mustache:group( mustache:escape-for-regexp( $mustache:ctag ) ) ) };
 
 declare function mustache:group( $r ) {

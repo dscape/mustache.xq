@@ -404,6 +404,96 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Array of Strings">
+      <template>{'{{#array_of_strings}}{{.}} {{/array_of_strings}}'}</template>
+      <hash>{'{array_of_strings: ["hello", "world"]}'}</hash>
+      <output>{'hello world'}</output>
+      <parseTree>
+        <multi>
+          <section name="array_of_strings">
+            <etag name="."/>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Whitespace">
+      <template>{'{{tag}} foo'}</template>
+      <hash>{'{ "tag": "yo" }'}</hash>
+      <output>{'yo foo'}</output>
+      <parseTree>
+        <multi>
+          <etag name="tag"/>
+          <static>foo</static>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Not Found">
+      <template>{'{{foo}}'}</template>
+      <hash>{'{ "bar": "yo" }'}</hash>
+      <output>{''}</output>
+      <parseTree>
+        <multi>
+          <etag name="foo"/>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Nesting">
+      <template>{'{{#foo}}
+        {{#a}}
+          {{b}}
+        {{/a}}
+      {{/foo}}'}</template>
+      <hash>{'foo: [
+        {a: {b: 1}},
+        {a: {b: 2}},
+        {a: {b: 3}}
+      ]'}</hash>
+      <output>{'1
+        2
+        3'}</output>
+      <parseTree>
+        <multi>
+          <section name="foo">
+            <static/>
+            <section name="a">
+              <etag name="b"/>
+            </section>
+            <static/>
+          </section>
+       </multi>
+      </parseTree>
+    </test>
+    <test name="Book with lots of sections">
+      <template>{
+        '{{#book}}
+           {{#section}}
+             {{#section}}
+               {{#section}}
+                 {{p}}
+               {{/section}}
+             {{/section}}
+          {{/section}}
+        {{/book}}'}</template>
+      <hash>{'
+        {"book":
+      {"section": {"section": {}}}}'}</hash>
+      <output>{''}</output>
+      <parseTree>
+        <multi>
+          <section name="book">
+            <section name="section">
+              <section name="section">
+                <static/>
+                <section name="section">
+                  <etag name="p"/>
+                </section>
+                <static/>
+              </section>
+            </section>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
 <!--
     <test name="">
       <template>{''}</template>
