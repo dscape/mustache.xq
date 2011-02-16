@@ -736,7 +736,7 @@ declare function local:compiler-test( $parseTree, $hash, $output ) {
       xs:QName( 'output' ), $output ) ) };
 
 xdmp:set-response-content-type('application/xml'),
-<tests> {
+let $results := <tests> {
 for $test at $i in $parser-tests/test
 return try {
 let $template       := $test/template/fn:string()
@@ -775,3 +775,14 @@ return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
            else ()}
        </test> } catch ($e) { <test i="{$i}">{xdmp:log($e),fn:string($test/@name)} Failed with exception</test> }
 } </tests>
+let $parseTests       := fn:count($results/test/@parseTest)
+let $compileTests     := fn:count($results/test/@compileTest)
+let $okParseTests     := fn:count($results/test[@parseTest='ok'])
+let $nokParseTests    := fn:count($results/test[@parseTest='NOK'])
+let $okCompileTests   := fn:count($results/test[@compileTest='ok'])
+let $nokCompileTests  := fn:count($results/test[@compileTest='NOK'])
+return <summary total="{$parseTests+$compileTests}">
+    <parseTests   pass="{$okParseTests}"   fail="{$nokParseTests}"   perc="{if($nokParseTests=0) then '100' else fn:round(100 * $okParseTests div $nokParseTests)}"/>
+    <compileTests pass="{$okCompileTests}" fail="{$nokCompileTests}" perc="{if($nokCompileTests=0) then '100' else fn:round(100 * $okCompileTests div $nokCompileTests)}"/>
+    {$results}
+  </summary>
