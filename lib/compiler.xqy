@@ -19,10 +19,18 @@ declare function compiler:compile-xpath( $parseTree, $json, $pos, $xpath ) {
 
 declare function compiler:compile-node( $node, $json, $pos, $xpath ) {
   typeswitch($node)
-    case element(etag)   return compiler:eval( $node/@name, $json, $pos, $xpath )
-    case element(utag)   return compiler:eval( $node/@name, $json, $pos, $xpath, fn:false() )
-    case element(static) return $node /fn:string()
+    case element(etag)    return compiler:eval( $node/@name, $json, $pos, $xpath )
+    case element(utag)    return compiler:eval( $node/@name, $json, $pos, $xpath, fn:false() )
+    case element(static)  return $node /fn:string()
+    case element(comment) return ()
+    case element(inverted-section) return
+      let $sNode := compiler:unpath( fn:string( $node/@name ) , $json, $pos, $xpath )
+      return 
+        if ( $sNode/@boolean = "true" ) 
+        then ()
+        else compiler:compile-xpath( $node, $json, 1, '' ) 
     case element(section) return
+
       let $sNode := compiler:unpath( fn:string( $node/@name ) , $json, $pos, $xpath )
       return 
         if ( $sNode/@boolean = "true" ) 

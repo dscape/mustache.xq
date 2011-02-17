@@ -170,6 +170,113 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Missing Inverted Sections" type="inverted-section">
+      <template>{'Shown.
+      {{^nothin}}
+        Also shown!
+      {{/nothin}}'}</template>
+      <hash>{'{
+        "person": true
+      }'}</hash>
+      <output><div>Shown. Also shown!</div></output>
+      <parseTree>
+        <multi> 
+          <static>Shown.</static> 
+          <inverted-section name="nothin"> 
+            <static>Also shown!</static> 
+          </inverted-section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="True Inverted Sections" type="inverted-section">
+      <template>{'Shown.
+      {{^nothin}}
+        Not shown!
+      {{/nothin}}'}</template>
+      <hash>{'{
+        "nothin": true
+      }'}</hash>
+      <output><div>Shown.</div></output>
+      <parseTree>
+        <multi> 
+          <static>Shown.</static> 
+          <inverted-section name="nothin"> 
+            <static>Not shown!</static> 
+          </inverted-section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="False Inverted Sections" type="inverted-section">
+      <template>{'Shown.
+      {{^nothin}}
+        Also shown!
+      {{/nothin}}'}</template>
+      <hash>{'{
+        "nothin": false
+      }'}</hash>
+      <output><div>Shown. Also shown!</div></output>
+      <parseTree>
+        <multi> 
+          <static>Shown.</static> 
+          <inverted-section name="nothin"> 
+            <static>Also shown!</static> 
+          </inverted-section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Empty Lists Inverted Sections" type="inverted-section">
+      <template>{'Shown.
+      {{^nothin}}
+        Also shown!
+      {{/nothin}}'}</template>
+      <hash>{'{
+        "nothin": []
+      }'}</hash>
+      <output><div>Shown. Also shown!</div></output>
+      <parseTree>
+        <multi> 
+          <static>Shown.</static> 
+          <inverted-section name="nothin"> 
+            <static>Also shown!</static> 
+          </inverted-section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Non-empty Lists Inverted Sections" type="inverted-section">
+      <template>{'Testing {{^repo}}
+      <b>{{name}}</b>
+    {{/repo}}'}</template>
+      <hash>{'{
+        "repo": [
+          { "name": "resque" },
+          { "name": "hub" },
+          { "name": "rip" }
+        ]
+      }'}</hash>
+      <output><div>Testing</div></output>
+      <parseTree>
+        <multi> 
+          <static>Testing</static> 
+          <inverted-section name="repo"> 
+            <static>&lt;b&gt;</static> 
+            <etag name="name"/> 
+            <static>&lt;/b&gt;</static> 
+          </inverted-section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Comments"  type="comment">
+      <template>{'<h1>Today{{! ignore me }}.</h1>'}</template>
+      <hash>{'{}'}</hash>
+      <output><div><h1>Today.</h1></div></output>
+      <parseTree>
+        <multi> 
+          <static>&lt;h1&gt;Today</static> 
+          <comment>ignore me</comment> 
+          <static>.&lt;/h1&gt;</static> 
+        </multi>
+      </parseTree>
+    </test>
 <!--    <test name="Simple Partial &gt;">
       <template>{'Hello {{> world}}'}</template>
       <parseTree>

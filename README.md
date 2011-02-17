@@ -114,21 +114,45 @@ An example for a Hello World test would be:
      Hash     : { "nothin": [] }
      Output   : <div>Shown.</div>
 
-####  ✔ Non-Empty List Sections (section)
-     Template : {{#repo}} <b>{{name}}</b> {{/repo}}
+####  ✔ Missing Inverted Sections (section)
+     Template : Shown. {{^nothin}} Also shown! {{/nothin}}
+     Hash     : { "person": true }
+     Output   : <div>Shown. Also shown!</div>
+
+####  ✔ True Inverted Sections (section)
+     Template : Shown. {{^nothin}} Not shown! {{/nothin}}
+     Hash     : { "nothin": true }
+     Output   : <div>Shown.</div>
+
+####  ✔ False Inverted Sections (section)
+     Template : Shown. {{^nothin}} Also shown! {{/nothin}}
+     Hash     : { "nothin": false }
+     Output   : <div>Shown. Also shown!</div>
+
+####  ✔ Empty List Inverted Sections (section)
+     Template : Shown. {{^nothin}} Also shown! {{/nothin}}
+     Hash     : { "nothin": [] }
+     Output   : <div>Shown. Also shown!</div>
+
+####  ✔ Non-Empty Inverted List Sections (section)
+     Template : Test {{^repo}} <b>{{name}}</b> {{/repo}}
      Hash     : { "repo": [ { "name": "resque" }, { "name": "hub" }, { "name": "rip" } ] }
-     Output   : <div><b>resque</b><b>hub</b><b>rip</b></div>
+     Output   : <div>Test </div>
 
-#### ✕ Lambdas
+####  ✔ Comments
+     Template : <h1>Today{{! ignore me }}.</h1>
+     Hash     : {}
+     Output   : <div><h1>Today.</h1></div>
 
+#### ✕ Partials
 
-### Mustache v2
+#### ✕ Lambdas (lambda)
 
-Something
+#### ✕ Set Delimiter
 
 ### Add-Ons 
 
-Something
+Not yet
 
 ### Known Limitations
 
