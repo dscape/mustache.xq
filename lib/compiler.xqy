@@ -88,14 +88,14 @@ declare function compiler:resolve-mustache-base64( $text ) {
     then 
       let $as := fn:analyze-string($token, '\{\{b64:(.+?)\}\}')
       let $b64    := $as//*:group[@nr=1]
-      let $before := $b64/preceding::*:non-match[1]/fn:string()
-      let $after  := $b64/following::*:non-match[1]/fn:string()
-      let $decoded := xdmp:base64-decode( $b64 )
+      let $before := $as/*:match[1]/preceding::*:non-match[1]/fn:string()
+      let $after  := $as/*:match[fn:last()]/following::*:non-match[1]/fn:string()
+      return fn:string-join( ($before, for $decoded in xdmp:base64-decode( $b64 )
       let $executed := 
-        if ( fn:matches( $decoded, "(&lt;|&gt;|&amp;|&quot;)" ) )
-        then $decoded
-        else try { xdmp:eval( $decoded ) } catch ( $e ) { $decoded }
-      return fn:concat($before, $executed, $after)
+        if ( fn:matches( $decoded, "(&lt;|&gt;|&amp;|&quot;|&apos;)" ) )
+        then fn:string($decoded)
+        else fn:string(try { xdmp:eval( $decoded ) } catch ( $e ) { $decoded })
+      return $executed, $after), '' )
     else if ( fn:matches( $token, '\{\{b64:\}\}' ) )
     then ""
     else $token, " ") };

@@ -14,6 +14,18 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Two mustaches With No Whitespace" type="whitespace">
+      <template>{'{{word}}{{word}}!'}</template>
+      <hash>{'{"word": "la"}'}</hash>
+      <output><div>lala!</div></output>
+      <parseTree>
+        <multi>
+          <etag name="word"/> 
+          <etag name="word"/> 
+          <static>!</static>
+        </multi>
+      </parseTree>
+    </test>
     <test name="Variables with embedded XQuery" section="etag">
       <template>{'x=4+5*2={{x}}'}</template>
       <hash>{'{ "x": ( xs:integer(4) + 5 ) * 2 }'}</hash>
@@ -396,8 +408,8 @@ declare variable $parser-tests :=
           {{/section}}
         {{/book}}'}</template>
       <hash>{'
-        {"book": {"section": {"section": {"section": {"p": "FOO!"}}}}}'}</hash>
-      <output><div>FOO!</div></output>
+        {"book": {"section": {"section": {"section": {"p": "Alive!"}}}}}'}</hash>
+      <output><div>Alive!</div></output>
       <parseTree>
         <multi>
           <section name="book">
@@ -517,6 +529,39 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Nil" type="complex">
+      <template>{'Hello {{name}}
+      glytch {{glytch}}
+      binary {{binary}}
+      value {{value}}
+      numeric {{numeric}}'}</template>
+      <hash>{'{
+        name: "Elise",
+        glytch: true,
+        binary: false,
+        value: null,
+        numeric: NaN}'}</hash>
+      <output>{'Hello Elise
+      glytch true
+      binary false
+      value
+      numeric NaN'}</output>
+      <parseTree>
+        <multi>
+          <static>Hello</static>
+          <etag name="name"/>
+          <static>glytch</static>
+          <etag name="glytch"/>
+          <static>binary</static>
+          <etag name="binary"/>
+          <static>value</static>
+          <etag name="value"/>
+          <static>numeric</static>
+          <etag name="numeric"/>
+        </multi>
+      </parseTree>
+    </test>
+    
     <test name="Parser Non-False Values" section="parser">
       <template>{'{{#person?}}
         Hi {{name}}!
@@ -605,8 +650,7 @@ declare variable $parser-tests :=
 
 
     
-    
-    
+  
     <test name="Dot Notation">
       <template>{'{{person.name}}'}</template>
       <hash>{'{ "person": {
@@ -670,40 +714,6 @@ declare variable $parser-tests :=
       </parseTree>
     </test>
 
-    <test name="Null String">
-      <template>{'Hello {{name}}
-      glytch {{glytch}}
-      binary {{binary}}
-      value {{value}}
-      numeric {{numeric}}'}</template>
-      <hash>{'{
-        name: "Elise",
-        glytch: true,
-        binary: false,
-        value: null,
-        numeric: function() {
-          return NaN;
-        }'}</hash>
-      <output>{'Hello Elise
-      glytch true
-      binary false
-      value 
-      numeric NaN'}</output>
-      <parseTree>
-        <multi>
-          <static>Hello</static>
-          <etag name="name"/>
-          <static>glytch</static>
-          <etag name="glytch"/>
-          <static>binary</static>
-          <etag name="binary"/>
-          <static>value</static>
-          <etag name="value"/>
-          <static>numeric</static>
-          <etag name="numeric"/>
-        </multi>
-      </parseTree>
-    </test>
     <test name="Partial Recursion">
       <template>{'{{name}}
       {{#kids}}
