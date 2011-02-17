@@ -60,7 +60,7 @@ You can run the tests by accessing:
 
 Make sure all the tests pass before sending in your pull request!
 
-### Tests
+### Report a bug
 
 If you want to contribute with a test case please file a [issue][2] and attach 
 the following information:
@@ -84,22 +84,40 @@ An example for a Hello World test would be:
 
 ### Mustache v1
 
-#### Variables (etag)  ✔
+####  ✔ Variables (etag)
      Template : {{car}}
      Hash     : { "car": "bmw"}
      Output   : <div>bmw</div>
 
-#### Escaped Variables with {{{var}}} (utag)  ✔
+####  ✔ Escaped Variables with {{{var}}} (utag)
      Template : {{company}} {{{company}}}
      Hash     : { "company": "<b>MarkLogic</b>" }
      Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
 
-#### Escaped Variables with {{&var}} (utag)  ✔
-     Template : {{company}} {{&company}}
-     Hash     : { "company": "<b>MarkLogic</b>" }
-     Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
+####  ✔ Missing Sections (section)
+     Template : Shown. {{#nothin}} Never shown! {{/nothin}}
+     Hash     : { "person": true }
+     Output   : <div>Shown.</div>
 
-#### Sections (section)
+####  ✔ True Sections (section)
+     Template : Shown. {{#nothin}} Also shown! {{/nothin}}
+     Hash     : { "nothin": true }
+     Output   : <div>Shown. Also shown!</div>
+
+####  ✔ False Sections (section)
+     Template : Shown. {{#nothin}} Not shown! {{/nothin}}
+     Hash     : { "nothin": false }
+     Output   : <div>Shown.</div>
+
+####  ✔ Empty List Sections (section)
+     Template : Shown. {{#nothin}} Not shown! {{/nothin}}
+     Hash     : { "nothin": [] }
+     Output   : <div>Shown.</div>
+
+####  ✕ Non-Empty List Sections (section)
+     Template : {{#repo}} <b>{{name}}</b> {{/repo}}
+     Hash     : { "repo": [ { "name": "resque" }, { "name": "hub" }, { "name": "rip" } ] }
+     Output   : <div><b>resque</b><b>hub</b><b>rip</b></div>
 
 #### Lambdas ✕
 

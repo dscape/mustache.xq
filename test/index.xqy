@@ -154,7 +154,7 @@ declare variable $parser-tests :=
         "repo": [
           { "name": "resque" },
           { "name": "hub" },
-          { "name": "rip" },
+          { "name": "rip" }
         ]
       }'}</hash>
       <output><div><b>resque</b>
