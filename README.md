@@ -114,12 +114,12 @@ An example for a Hello World test would be:
      Hash     : { "nothin": [] }
      Output   : <div>Shown.</div>
 
-####  ✕ Non-Empty List Sections (section)
+####  ✔ Non-Empty List Sections (section)
      Template : {{#repo}} <b>{{name}}</b> {{/repo}}
      Hash     : { "repo": [ { "name": "resque" }, { "name": "hub" }, { "name": "rip" } ] }
      Output   : <div><b>resque</b><b>hub</b><b>rip</b></div>
 
-#### Lambdas ✕
+#### ✕ Lambdas
 
 
 ### Mustache v2
