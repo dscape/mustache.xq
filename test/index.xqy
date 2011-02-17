@@ -277,6 +277,16 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+<!--
+        <test name="" section="">
+          <template>{''}</template>
+          <hash>{''}</hash>
+          <output>{''}</output>
+          <parseTree>
+            <multi/>
+          </parseTree>
+        </test>
+    -->
 <!--    <test name="Simple Partial &gt;">
       <template>{'Hello {{> world}}'}</template>
       <parseTree>
@@ -939,16 +949,6 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test> -->
-<!--
-    <test name="">
-      <template>{''}</template>
-      <hash>{''}</hash>
-      <output>{''}</output>
-      <parseTree>
-        <multi/>
-      </parseTree>
-    </test>
--->
   </tests> ;
   
 declare function local:parser-test( $template, $parseTree ) {

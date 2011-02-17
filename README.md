@@ -74,70 +74,72 @@ This will help us be faster fixing the problem.
 
 An example for a Hello World test would be:
 
-     <test name="Variables (ETag)">
+     <test name="Hello World">
        <template>{'Hello {{word}}!'}</template>
        <hash>{'{"word": "world"}'}</hash>
        <output><div>Hello world !</div></output>
      </test>
 
+This is not the actual test that we run (you can see a list of those in test/index.xqy) but it's all the information we need for a bug report.
+
 ## Supported Functionality
 
-####  ✔ Variables (etag)
+####  ✔ Variables
      Template : {{car}}
      Hash     : { "car": "bmw"}
      Output   : <div>bmw</div>
 
-####  ✔ Escaped Variables with {{{var}}} (utag)
+####  ✔ Escaped Variables with {{{var}}}
      Template : {{company}} {{{company}}}
      Hash     : { "company": "<b>MarkLogic</b>" }
      Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
 
-####  ✔ Escaped Variables with {{&var}} (utag)
+####  ✔ Escaped Variables with {{&var}}
      Template : {{company}} {{&company}}
      Hash     : { "company": "<b>MarkLogic</b>" }
      Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
 
-####  ✔ Missing Sections (section)
+####  ✔ Missing Sections
      Template : Shown. {{#nothin}} Never shown! {{/nothin}}
      Hash     : { "person": true }
      Output   : <div>Shown.</div>
 
-####  ✔ True Sections (section)
+####  ✔ True Sections
      Template : Shown. {{#nothin}} Also shown! {{/nothin}}
      Hash     : { "nothin": true }
      Output   : <div>Shown. Also shown!</div>
 
-####  ✔ False Sections (section)
+####  ✔ False Sections
      Template : Shown. {{#nothin}} Not shown! {{/nothin}}
      Hash     : { "nothin": false }
      Output   : <div>Shown.</div>
 
-####  ✔ Empty List Sections (section)
+####  ✔ Empty List Sections
      Template : Shown. {{#nothin}} Not shown! {{/nothin}}
      Hash     : { "nothin": [] }
      Output   : <div>Shown.</div>
 
-####  ✔ Missing Inverted Sections (section)
+####  ✔ Missing Inverted Sections
      Template : Shown. {{^nothin}} Also shown! {{/nothin}}
      Hash     : { "person": true }
      Output   : <div>Shown. Also shown!</div>
 
-####  ✔ True Inverted Sections (section)
+####  ✔ True Inverted Sections
      Template : Shown. {{^nothin}} Not shown! {{/nothin}}
      Hash     : { "nothin": true }
      Output   : <div>Shown.</div>
 
-####  ✔ False Inverted Sections (section)
+####  ✔ False Inverted Sections
      Template : Shown. {{^nothin}} Also shown! {{/nothin}}
      Hash     : { "nothin": false }
      Output   : <div>Shown. Also shown!</div>
 
-####  ✔ Empty List Inverted Sections (section)
+####  ✔ Empty List Inverted Sections
      Template : Shown. {{^nothin}} Also shown! {{/nothin}}
      Hash     : { "nothin": [] }
      Output   : <div>Shown. Also shown!</div>
 
-####  ✔ Non-Empty Inverted List Sections (section)
+####  ✔ Non-Empty Inverted List Sections
      Template : Test {{^repo}} <b>{{name}}</b> {{/repo}}
      Hash     : { "repo": [ { "name": "resque" }, { "name": "hub" }, { "name": "rip" } ] }
      Output   : <div>Test </div>
