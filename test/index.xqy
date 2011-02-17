@@ -5,7 +5,7 @@ declare variable $parser-tests :=
     <test name="Variables" type="etag">
       <template>{'Hello {{word}}!'}</template>
       <hash>{'{"word": "world"}'}</hash>
-      <output><div>Hello world !</div></output>
+      <output><div>Hello world!</div></output>
       <parseTree>
         <multi>
           <static>Hello </static>
