@@ -23,6 +23,18 @@ Mustache.xq is designed to help you when:
 Mustache.xq was designed using MarkLogic Server <http://marklogic.com/> but can be 
 used in any XQuery processor
 
+## Usage
+
+A quick example how to use mustache.xq:
+
+    import module namespace mustache = "mustache.xq"
+     at "mustache.xqy";
+    mustache:render( 'Hello {{text}} !', '{ "text": "world"}' )
+
+Returns
+
+    <div>Hello world !</div>
+
 ## Contribute
 
 Everyone is welcome to contribute. 
@@ -68,31 +80,26 @@ An example for a Hello World test would be:
        <output><div>Hello world !</div></output>
      </test>
 
-## Usage
-
-A quick example how to use mustache.xq:
-
-    import module namespace mustache = "mustache.xq"
-     at "mustache.xqy";
-    mustache:render( 'Hello {{text}} !', '{ "text": "world"}' )
-
-Returns
-
-    <div>Hello world !</div>
-
 ## Supported Features
 
 ### Mustache v1
 
-#### Variables (ETag)  ✔
+#### Variables (etag)  ✔
      Template : {{car}}
      Hash     : { "car": "bmw"}
-     Output   : bmw
+     Output   : <div>bmw</div>
 
-#### Escaped Variabled (Utag)  ✔
-     Template : * {{name}} * {{age}} * {{company}} * {{{company}}}
-     Hash     : { "name": "Chris", "company": "<b>GitHub</b>" }
-     Output   : * Chris * * &lt;b&gt;GitHub&lt;/b&gt; * <b>GitHub</b>
+#### Escaped Variables with {{{var}}} (utag)  ✔
+     Template : {{company}} {{{company}}}
+     Hash     : { "company": "<b>MarkLogic</b>" }
+     Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
+
+#### Escaped Variables with {{&var}} (utag)  ✔
+     Template : {{company}} {{&company}}
+     Hash     : { "company": "<b>MarkLogic</b>" }
+     Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
+
+#### Sections (section)
 
 #### Lambdas ✕
 
@@ -110,9 +117,11 @@ Something
 In this section we have the know limitations excluding the features that are not supported. 
 To better understand what is supported refer to the Supported Features section
 
-* Test cases can only be run in MarkLogic
-* Bundled generator is MarkLogic Specific "1.0-ml"
+* Test cases can only be run in MarkLogic.
+* Bundled generator is MarkLogic Specific "1.0-ml".
 * Output is returned inside a <div/> tag. This is to support escaping.
+* Sections don't support empty list as false
+* Tests do not display results per test group (etag, utag, section, whitespace, etc...)
 
 ## Meta
 

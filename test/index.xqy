@@ -2,7 +2,7 @@ xquery version "1.0-ml" ;
 
 declare variable $parser-tests :=
   <tests>
-    <test name="Variables (ETag)">
+    <test name="Variables" type="etag">
       <template>{'Hello {{word}}!'}</template>
       <hash>{'{"word": "world"}'}</hash>
       <output><div>Hello world !</div></output>
@@ -14,7 +14,7 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <test name="Escaping">
+    <test name="Escaped Variables with {'{{{var}}}'}" type="utag">
       <template>{'* {{name}}
       * {{age}}
       * {{company}}
@@ -44,7 +44,133 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <test name="Simple Partial &gt;">
+    <test name="Escaped Variables with {{&amp;var}}" type="utag">
+      <template>{'* {{name}}
+      * {{age}}
+      * {{company}}
+      * {{&amp;company}}'}</template>
+      <hash>{'{
+        "name": "Chris",
+        "company": "<b>GitHub</b>"
+      }'}</hash>
+      <output>
+        <div>
+          * Chris 
+          *
+          * &lt;b&gt;GitHub&lt;/b&gt;
+          * <b>GitHub</b>
+        </div>
+      </output>
+      <parseTree>
+        <multi> 
+          <static>* </static> 
+          <etag name="name"/> 
+          <static>* </static> 
+          <etag name="age"/> 
+          <static>* </static> 
+          <etag name="company"/> 
+          <static>* </static> 
+          <utag name="company"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Missing Sections" type="section">
+      <template>{'Shown.
+      {{#nothin}}
+        Never shown!
+      {{/nothin}}'}</template>
+      <hash>{'{
+        "person": true
+      }'}</hash>
+      <output><div>Shown.</div></output>
+      <parseTree>
+        <multi> 
+          <static>Shown.</static> 
+          <section name="nothin"> 
+            <static>Never shown!</static> 
+          </section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="True Sections" type="section">
+      <template>{'Shown.
+      {{#nothin}}
+        Also shown!
+      {{/nothin}}'}</template>
+      <hash>{'{
+        "nothin": true
+      }'}</hash>
+      <output><div>Shown. Also shown!</div></output>
+      <parseTree>
+        <multi> 
+          <static>Shown.</static> 
+          <section name="nothin"> 
+            <static>Also shown!</static> 
+          </section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="False Sections" type="section">
+      <template>{'Shown.
+      {{#nothin}}
+        Never shown!
+      {{/nothin}}'}</template>
+      <hash>{'{
+        "nothin": false
+      }'}</hash>
+      <output><div>Shown.</div></output>
+      <parseTree>
+        <multi> 
+          <static>Shown.</static> 
+          <section name="nothin"> 
+            <static>Never shown!</static> 
+          </section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Empty Lists Sections" type="section">
+      <template>{'Shown.
+      {{#nothin}}
+        Never shown!
+      {{/nothin}}'}</template>
+      <hash>{'{
+        "nothin": []
+      }'}</hash>
+      <output><div>Shown.</div></output>
+      <parseTree>
+        <multi> 
+          <static>Shown.</static> 
+          <section name="nothin"> 
+            <static>Never shown!</static> 
+          </section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Non-empty Lists Sections" type="section">
+      <template>{'{{#repo}}
+      <b>{{name}}</b>
+    {{/repo}}'}</template>
+      <hash>{'{
+        "repo": [
+          { "name": "resque" },
+          { "name": "hub" },
+          { "name": "rip" },
+        ]
+      }'}</hash>
+      <output><div><b>resque</b>
+      <b>hub</b>
+      <b>rip</b></div></output>
+      <parseTree>
+        <multi> 
+          <section name="repo"> 
+            <static>&lt;b&gt;</static> 
+            <etag name="name"/> 
+            <static>&lt;/b&gt;</static> 
+          </section> 
+        </multi>
+      </parseTree>
+    </test>
+<!--    <test name="Simple Partial &gt;">
       <template>{'Hello {{> world}}'}</template>
       <parseTree>
         <multi> 
@@ -123,20 +249,6 @@ declare variable $parser-tests :=
       <parseTree>
         <multi>
           <utag name="world"/>
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Static Section">
-      <template>{'Shown.
-      {{#nothin}}
-        Never shown!
-      {{/nothin}}'}</template>
-      <parseTree>
-        <multi> 
-          <static>Shown.</static> 
-          <section name="nothin"> 
-            <static>Never shown!</static> 
-          </section> 
         </multi>
       </parseTree>
     </test>
@@ -396,7 +508,6 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <!-- tests from mustache.js -->
     <test name="Apos">
       <template>{'{{apos}}{{control}}'}</template>
       <hash>{'{"apos": "&#39;", "control":"X")}'}</hash>
@@ -720,7 +831,7 @@ declare variable $parser-tests :=
         <static>&lt;/h1&gt;</static>
         </multi>
       </parseTree>
-    </test>
+    </test> -->
 <!--
     <test name="">
       <template>{''}</template>
@@ -761,7 +872,7 @@ return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
          { if($valid) then ()
            else 
              <parseTestExplanation> 
-               {xdmp:log((fn:concat($i, ' >> parse: ')))}
+               {xdmp:log((fn:concat($i, ' failed on >> parse: ')))}
                <p> Template: {$template} </p>
                <p> Expected: {$parseTree} </p>  
                <p> Got: {$mTree} </p>
@@ -770,7 +881,7 @@ return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
            then if($validCompiler) then ()
            else 
               <compileTestExplanation> 
-                {xdmp:log((fn:concat($i, ' >> compile: ')))}
+                {xdmp:log((fn:concat($i, ' failed on >> compile: ')))}
                 <p> Template: {$template} </p>
                 <p> Hash: {$hash} </p>
                 <p> Expected: {$output} </p>
@@ -786,7 +897,7 @@ let $nokParseTests    := fn:count($results/test[@parseTest='NOK'])
 let $okCompileTests   := fn:count($results/test[@compileTest='ok'])
 let $nokCompileTests  := fn:count($results/test[@compileTest='NOK'])
 return <summary total="{$parseTests+$compileTests}">
-    <parseTests   pass="{$okParseTests}"   fail="{$nokParseTests}"   perc="{if($nokParseTests=0) then '100' else fn:round(100 * $okParseTests div $nokParseTests)}"/>
-    <compileTests pass="{$okCompileTests}" fail="{$nokCompileTests}" perc="{if($nokCompileTests=0) then '100' else fn:round(100 * $okCompileTests div $nokCompileTests)}"/>
+    <parseTests   pass="{$okParseTests}"   fail="{$nokParseTests}"   perc="{if($nokParseTests=0) then '100' else 100 - fn:round(100 * $nokParseTests div $okParseTests)}"/>
+    <compileTests pass="{$okCompileTests}" fail="{$nokCompileTests}" perc="{if($nokCompileTests=0) then '100' else 100 - fn:round(100 * $nokCompileTests div $okCompileTests)}"/>
     {$results}
   </summary>
