@@ -6,7 +6,7 @@ framework-agnostic way to render logic-free views.
 As ctemplates says, "It emphasizes separating logic from presentation:
 it is impossible to embed application logic in this template language."
 
-For a list of implementations (other than Ruby) and tips, see
+For a list of implementations (other than XQuery) and tips, see
 <http://mustache.github.com/>.
 
 For a language-agnostic overview of Mustache’s template syntax, see the
@@ -20,7 +20,7 @@ Mustache.xq is designed to help you when:
 2. Want to render json as a string
 3. Internationalization
 
-Mustache.xq was designed using MarkLogic Server <http://marklogic.com/> but can be 
+Mustache.xq was designed using [MarkLogic][4] Server but can be 
 used in any XQuery processor
 
 ## Usage
@@ -80,9 +80,7 @@ An example for a Hello World test would be:
        <output><div>Hello world !</div></output>
      </test>
 
-## Supported Features
-
-### Mustache v1
+## Supported Functionality
 
 ####  ✔ Variables (etag)
      Template : {{car}}
@@ -91,6 +89,11 @@ An example for a Hello World test would be:
 
 ####  ✔ Escaped Variables with {{{var}}} (utag)
      Template : {{company}} {{{company}}}
+     Hash     : { "company": "<b>MarkLogic</b>" }
+     Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
+
+####  ✔ Escaped Variables with {{&var}} (utag)
+     Template : {{company}} {{&company}}
      Hash     : { "company": "<b>MarkLogic</b>" }
      Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
 
@@ -175,3 +178,4 @@ To better understand what is supported refer to the Supported Features section
 [1]: http://code.google.com/p/google-ctemplate/
 [2]: http://www.ivan.fomichev.name/2008/05/erlang-template-engine-prototype.html
 [3]: http://github.com/dscape/mustache.xq/issues
+[4]: http://marklogic.com
