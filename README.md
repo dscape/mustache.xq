@@ -29,11 +29,11 @@ A quick example how to use mustache.xq:
 
     import module namespace mustache = "mustache.xq"
      at "mustache.xqy";
-    mustache:render( 'Hello {{text}} !', '{ "text": "world"}' )
+    mustache:render( 'Hello {{text}}!', '{ "text": "world"}' )
 
 Returns
 
-    <div>Hello world !</div>
+    <div>Hello world!</div>
 
 A slightly more complicated example
 

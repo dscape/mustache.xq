@@ -75,7 +75,7 @@ declare function compiler:handle-escaping( $div ) {
 declare function compiler:handle-base64( $node ) {
   typeswitch($node)
     case element()         return element {fn:node-name($node)} {
-      for $a in $node/@*(
+      for $a in $node/@*
       return attribute {fn:node-name($a)} {compiler:resolve-mustache-base64($node)}, 
       compiler:handle-escaping( $node )}
     case text()            return compiler:resolve-mustache-base64( $node)
