@@ -35,7 +35,43 @@ Returns
 
     <div>Hello world !</div>
 
-You can check the following sections for slightly more complex scenarios. 
+A slightly more complicated example
+
+    mustache:render(
+      '<h1>{{header}}</h1> {{#bug}} {{/bug}}
+      {{#items}}
+        {{#first}}
+          <li><strong>{{name}}</strong></li>
+        {{/first}}
+        {{#link}}
+          <li><a href="{{url}}">{{name}}</a></li>
+        {{/link}}
+      {{/items}}
+      {{#empty}}
+        <p>The list is empty.</p>
+      {{/empty}}', 
+      '{ "header": "Colors",
+          "items": [
+              {"name": "red", "first": true, "url": "#Red"},
+              {"name": "green", "link": true, "url": "#Green"},
+              {"name": "blue", "link": true, "url": "#Blue"}
+          ],
+          "empty": false }')
+
+Outputs:
+
+    <div>
+      <h1>Colors</h1>
+      <li>
+        <strong>red</strong>
+      </li>
+      <li>
+        <a href="#Green">green</a>
+      </li>
+      <li>
+        <a href="#Blue">blue</a>
+      </li>
+    </div>
 
 ## Contribute
 
