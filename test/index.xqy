@@ -14,6 +14,17 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Variables with embedded XQuery" section="etag">
+      <template>{'x=4+5*2={{x}}'}</template>
+      <hash>{'{ "x": ( xs:integer(4) + 5 ) * 2 }'}</hash>
+      <output><div>x=4+5*2=18</div></output>
+      <parseTree>
+        <multi> 
+          <static>x=4+5*2=</static> 
+          <etag name="x"/> 
+        </multi>
+      </parseTree>
+    </test>
     <test name="Escaped Variables with {'{{{var}}}'}" type="utag">
       <template>{'* {{name}}
       * {{age}}
@@ -277,66 +288,8 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-<!--
-        <test name="" section="">
-          <template>{''}</template>
-          <hash>{''}</hash>
-          <output>{''}</output>
-          <parseTree>
-            <multi/>
-          </parseTree>
-        </test>
-    -->
-<!--    <test name="Simple Partial &gt;">
-      <template>{'Hello {{> world}}'}</template>
-      <parseTree>
-        <multi> 
-          <static>Hello</static> 
-          <partial name="world"/> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Simple Partial &lt;">
-      <template>{'Hello {{< world}}'}</template>
-      <parseTree>
-        <multi> 
-          <static>Hello</static> 
-          <partial name="world"/> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Simple Comment">
-      <template>{'Hello World
-      {{! author }}
-      Nuno'}</template>
-      <parseTree>
-        <multi> 
-          <static>Hello World</static> 
-          <comment>author</comment> 
-          <static>Nuno</static> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Inverted Section">
-      <template>{'Shown.
-      {{^ nothin}}
-        Never shown!
-      {{/ nothin}}'}</template>
-      <hash>{'{
-        "person": true
-      }'}</hash>
-      <output>{'Shown.'}</output>
-      <parseTree>
-        <multi> 
-          <static>Shown.</static> 
-          <inverted-section name="nothin"> 
-            <static>Never shown!</static> 
-          </inverted-section> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Manual First Section">
-      <template>{'Hello {{name}} You have just won ${{value}}! 
+    <test name="After Taxes" section="complex">
+      <template>{'Hello {{name}}! You have just won ${{value}}! 
       {{#in_ca}} Well, 
         ${{taxed_value}}, after taxes.
       {{/in_ca}}'}</template>
@@ -345,12 +298,12 @@ declare variable $parser-tests :=
         "value": 10000,
         "taxed_value": 10000 - (10000 * 0.4),
         "in_ca": true }'}</hash>
-      <output>{'Hello ChrisYou have just won $10000!Well, $6000, after taxes.'}</output>
+      <output><div>Hello Chris! You have just won $10000! Well, $6000, after taxes.</div></output>
       <parseTree>
         <multi>
           <static>Hello </static>
           <etag name="name"/>
-          <static>You have just won $</static>
+          <static>! You have just won $</static>
           <etag name="value"/>
           <static>!</static>
           <section name="in_ca">
@@ -361,87 +314,7 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <test name="Triple Mustache">
-      <template>{'{{{world}}}'}</template>
-      <parseTree>
-        <multi>
-          <utag name="world"/>
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Simple amp utag">
-      <template>{'{{&amp; name}}'}</template>
-      <parseTree>
-        <multi> 
-          <utag name="name"/> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Repo Section">
-      <template>{'{{#repo}}
-      <b>{{name}}</b>
-    {{/repo}}'}</template>
-      <hash>{'{
-        "repo": [
-          { "name": "resque" },
-          { "name": "hub" },
-          { "name": "rip" },
-        ]
-      }'}</hash>
-      <output>{'<b>resque</b>
-      <b>hub</b>
-      <b>rip</b>'}</output>
-      <parseTree>
-        <multi> 
-          <section name="repo"> 
-            <static>&lt;b&gt;</static> 
-            <etag name="name"/> 
-            <static>&lt;/b&gt;</static> 
-          </section> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Simple Lambda">
-      <template>{'{{#wrapped}}
-        {{name}} is awesome.
-      {{/wrapped}}'}</template>
-      <hash>{'{
-        "name": "Willy",
-        "wrapped": function() {
-          return function(text) {
-            return "<b>" + render(text) + "</b>"
-          }
-        }
-      }'}</hash>
-      <output>{'<b>Willy is awesome.</b>'}</output>
-      <parseTree>
-        <multi> 
-          <section name="wrapped"> 
-            <etag name="name"/> 
-            <static>is awesome.</static> 
-          </section> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Non-False Values">
-      <template>{'{{#person?}}
-        Hi {{name}}!
-      {{/person?}}'}</template>
-      <hash>{'{
-        "person?": { "name": "Jon" }
-      }'}</hash>
-      <output>{'Hi Jon!'}</output>
-      <parseTree>
-        <multi> 
-          <section name="person?"> 
-            <static>Hi</static> 
-            <etag name="name"/> 
-            <static>!</static> 
-          </section> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Inverted Sections">
+    <test name="No Repos Inverted Sections" section="inverted-section">
       <template>{'{{#repo}}
         <b>{{name}}</b>
       {{/repo}}
@@ -451,7 +324,7 @@ declare variable $parser-tests :=
       <hash>{'{
         "repo": []
       }'}</hash>
-      <output>{'No repos :('}</output>
+      <output><div>No repos :(</div></output>
       <parseTree>
         <multi> 
           <section name="repo"> 
@@ -466,27 +339,7 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <test name="Comments">
-      <template>{'<h1>Today{{! ignore me }}.</h1>'}</template>
-      <hash>{'{}'}</hash>
-      <output>{'<h1>Today.</h1>'}</output>
-      <parseTree>
-        <multi> 
-          <static>&lt;h1&gt;Today</static> 
-          <comment>ignore me</comment> 
-          <static>.&lt;/h1&gt;</static> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Partial Test">
-      <template>{'{{> next_more}}'}</template>
-      <parseTree>
-        <multi> 
-          <partial name="next_more"/> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Nested Sections">
+    <test name="Colors Sample (Nested Sections)" section="complex">
       <template>{'<h1>{{header}}</h1>
       {{#bug}}
       {{/bug}}
@@ -513,10 +366,10 @@ declare variable $parser-tests :=
         ],
         "empty": false
       }'}</hash>
-      <output>{'<h1>Colors</h1>
+      <output><div><h1>Colors</h1>
       <li><strong>red</strong></li>
       <li><a href="#Green">green</a></li>
-      <li><a href="#Blue">blue</a></li>'}</output>
+      <li><a href="#Blue">blue</a></li></div></output>
       <parseTree>
         <multi> 
           <static>&lt;h1&gt;</static> 
@@ -551,6 +404,103 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+
+<!--
+        <test name="" section="">
+          <template>{''}</template>
+          <hash>{''}</hash>
+          <output><div></div></output>
+          <parseTree>
+            <multi/>
+          </parseTree>
+        </test>
+    -->
+<!--
+
+<test name="Non-False Values">
+  <template>{'{{#person?}}
+    Hi {{name}}!
+  {{/person?}}'}</template>
+  <parseTree>
+    <multi> 
+      <section name="person?"> 
+        <static>Hi</static> 
+        <etag name="name"/> 
+        <static>!</static> 
+      </section> 
+    </multi>
+  </parseTree>
+</test>
+
+    <test name="Simple Partial &gt;">
+      <template>{'Hello {{> world}}'}</template>
+      <parseTree>
+        <multi> 
+          <static>Hello</static> 
+          <partial name="world"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Simple Partial &lt;">
+      <template>{'Hello {{< world}}'}</template>
+      <parseTree>
+        <multi> 
+          <static>Hello</static> 
+          <partial name="world"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Simple Comment">
+      <template>{'Hello World
+      {{! author }}
+      Nuno'}</template>
+      <parseTree>
+        <multi> 
+          <static>Hello World</static> 
+          <comment>author</comment> 
+          <static>Nuno</static> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Triple Mustache">
+      <template>{'{{{world}}}'}</template>
+      <parseTree>
+        <multi>
+          <utag name="world"/>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Simple amp utag">
+      <template>{'{{&amp; name}}'}</template>
+      <parseTree>
+        <multi> 
+          <utag name="name"/> 
+        </multi>
+      </parseTree>
+    </test>
+
+    <test name="Simple Lambda">
+      <template>{'{{#wrapped}}
+        {{name}} is awesome.
+      {{/wrapped}}'}</template>
+      <parseTree>
+        <multi> 
+          <section name="wrapped"> 
+            <etag name="name"/> 
+            <static>is awesome.</static> 
+          </section> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Partial Test">
+      <template>{'{{> next_more}}'}</template>
+      <parseTree>
+        <multi> 
+          <partial name="next_more"/> 
+        </multi>
+      </parseTree>
+    </test>
+
     <test name="Two Sequencial Mustaches">
       <template>{'I like going to the {{location}} because I find it {{verb}}'}</template>
       <parseTree>

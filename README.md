@@ -35,6 +35,8 @@ Returns
 
     <div>Hello world !</div>
 
+You can check the following sections for slightly more complex scenarios. 
+
 ## Contribute
 
 Everyone is welcome to contribute. 
@@ -89,6 +91,11 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Hash     : { "car": "bmw"}
      Output   : <div>bmw</div>
 
+####  ✔ Variables with embedded XQuery
+     Template : {{x}}
+     Hash     : { "x": ( xs:integer(4) + 5 ) * 2 }
+     Output   : <div>18</div>
+
 ####  ✔ Escaped Variables with {{{var}}}
      Template : {{company}} {{{company}}}
      Hash     : { "company": "<b>MarkLogic</b>" }
@@ -118,6 +125,11 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Template : Shown. {{#nothin}} Not shown! {{/nothin}}
      Hash     : { "nothin": [] }
      Output   : <div>Shown.</div>
+
+####  ✔ Non-Empty List Sections
+     Template : {{#repo}} <b>{{name}}</b> {{/repo}}
+     Hash     : { "repo": [ { "name": "resque" }, { "name": "hub" }, { "name": "rip" } ] }
+     Output   : <div><b>resque</b><b>hub</b><b>rip</b></div>
 
 ####  ✔ Missing Inverted Sections
      Template : Shown. {{^nothin}} Also shown! {{/nothin}}
@@ -151,7 +163,7 @@ This is not the actual test that we run (you can see a list of those in test/ind
 
 #### ✕ Partials
 
-#### ✕ Lambdas (lambda)
+#### ✕ Lambdas
 
 #### ✕ Set Delimiter
 
@@ -169,6 +181,7 @@ To better understand what is supported refer to the Supported Features section
 * Output is returned inside a <div/> tag. This is to support escaping.
 * Sections don't support empty list as false
 * Tests do not display results per test group (etag, utag, section, whitespace, etc...)
+* Key names must be valid QNames (limitation of json.xqy and generator.xqy)
 
 ## Meta
 
