@@ -10,6 +10,9 @@ import module namespace parser   = "parser.xq"
 import module namespace compiler = "compiler.xq"
   at "lib/compiler.xqy" ;
 
+declare function mustache:render( $$template, $json ) {
+  mustache:compile( mustache:parse( $template ), $json ) } ;
+
 declare function mustache:parse( $template ) {
   parser:parse( $template) } ;
 
