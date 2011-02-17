@@ -897,7 +897,7 @@ let $nokParseTests    := fn:count($results/test[@parseTest='NOK'])
 let $okCompileTests   := fn:count($results/test[@compileTest='ok'])
 let $nokCompileTests  := fn:count($results/test[@compileTest='NOK'])
 return <summary total="{$parseTests+$compileTests}">
-    <parseTests   pass="{$okParseTests}"   fail="{$nokParseTests}"   perc="{if($nokParseTests=0) then '100' else 100 - fn:round(100 * $nokParseTests div $okParseTests)}"/>
-    <compileTests pass="{$okCompileTests}" fail="{$nokCompileTests}" perc="{if($nokCompileTests=0) then '100' else 100 - fn:round(100 * $nokCompileTests div $okCompileTests)}"/>
+    <parseTests   pass="{$okParseTests}"   fail="{$nokParseTests}"   perc="{if($okParseTests=0) then '100' else 100 - fn:round(100 * $nokParseTests div $okParseTests)}"/>
+    <compileTests pass="{$okCompileTests}" fail="{$nokCompileTests}" perc="{if($okCompileTests=0) then '100' else 100 - fn:round(100 * $nokCompileTests div $okCompileTests)}"/>
     {$results}
   </summary>
