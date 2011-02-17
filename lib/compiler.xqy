@@ -9,7 +9,6 @@ import module
   at "json.xqy" ;
 
 declare function compiler:compile( $parseTree, $json ) {
-let $_ := xdmp:log(( json:jsonToXML( $json ), '-------'))
  let $div := xdmp:unquote( fn:concat( '&lt;div&gt;',
    fn:string-join(compiler:compile-xpath( $parseTree, json:jsonToXML( $json ) ), ''),  '&lt;/div&gt;') )
  return compiler:handle-escaping($div) } ;
@@ -36,7 +35,6 @@ declare function compiler:compile-node( $node, $json, $pos, $xpath ) {
         else compiler:compile-xpath( $node, $json ) 
     case element(section) return
       let $sNode := compiler:unpath( fn:string( $node/@name ) , $json, $pos, $xpath )
-      let $_ := xdmp:log(('----',$sNode, $pos, $xpath))
       return 
         if ( $sNode/@boolean = "true" ) 
         then compiler:compile-xpath( $node, $json, $pos, $xpath ) 
