@@ -203,6 +203,18 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Array of Strings" section="section">
+      <template>{'{{#array_of_strings}} {{.}} {{/array_of_strings}}'}</template>
+      <hash>{'{array_of_strings: ["hello", "world"]}'}</hash>
+      <output><div>hello world</div></output>
+      <parseTree>
+        <multi>
+          <section name="array_of_strings">
+          <etag name="."/>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
     <test name="Missing Inverted Sections" type="inverted-section">
       <template>{'Shown.
       {{^nothin}}
@@ -372,6 +384,58 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Descendant Extension" section="ext">
+      <template>{'* {{*name}}'}</template>
+      <hash>{'{
+          "people": {
+              "person": {
+                  "name": "Chris"
+              },
+              "name": "Jan" 
+          } 
+      }'}</hash>
+      <output><div>* Chris Jan</div></output>
+      <parseTree>
+        <multi> 
+          <static>*</static>
+          <rtag name="name"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Descendant Extension Inside Section" section="ext">
+      <template>{'* {{#people}}{{#person}}{{*name}}{{/person}}{{/people}}'}</template>
+      <hash>{'{
+          "people": {
+              "person": {
+                  "name": "Chris",
+                  "name": "Kelly"
+              },
+              "name": "Jan" 
+          } 
+      }'}</hash>
+      <output><div>* Chris * Kelly</div></output>
+      <parseTree>
+        <multi> 
+          <static>*</static>
+          <rtag name="name"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Dot Notation Sections" type="dot">
+      <template>{'{{person.name}}'}</template>
+      <hash>{'{ "person": {
+        "name": "Chris",
+        "company": "<b>GitHub</b>"
+      } }'}</hash>
+      <output><div>Chris</div></output>
+      <parseTree>
+        <multi> 
+          <section name="person">
+            <etag name="name"/>
+          </section> 
+        </multi>
+      </parseTree>
+    </test>
     <test name="Nested Sections" section="complex">
       <template>{'{{#foo}}
         {{#a}}
@@ -394,6 +458,21 @@ declare variable $parser-tests :=
             <static/>
           </section>
        </multi>
+      </parseTree>
+    </test>
+    <test name="Welcome Joe" section="complex">
+      <template>{'{{greeting}}, {{name}}!'}</template>
+      <hash>{'{
+        name: "Joe",
+        greeting: "Welcome" }'}</hash>
+      <output><div>Welcome, Joe!</div></output>
+      <parseTree>
+        <multi>
+          <etag name="greeting"/>
+          <static>,</static>
+          <etag name="name"/>
+          <static>!</static>
+        </multi>
       </parseTree>
     </test>
     <test name="Book with lots of nested Sections" section="complex">
@@ -495,6 +574,84 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Section as Context" section="complex">
+      <template>{'{{#a_object}}
+        <h1>{{title}}</h1>
+        <p>{{description}}</p>
+        <ul>
+          {{#a_list}}
+          <li>{{label}}</li>
+          {{/a_list}}
+        </ul>
+      {{/a_object}}'}</template>
+      <hash>{'{
+        a_object: {
+          title: "this is an object",
+          description: "one of its attributes is a list",
+          a_list: [{label: "listitem1"}, {label: "listitem2"}]
+        }'}</hash>
+      <output><div><h1>this is an object</h1>
+        <p>one of its attributes is a list</p>
+        <ul>
+              <li>listitem1</li>
+              <li>listitem2</li>
+          </ul></div></output>
+      <parseTree>
+        <multi>
+          <section name="a_object">
+            <static>&lt;h1&gt;</static>
+            <etag name="title"/>
+            <static>&lt;/h1&gt; &lt;p&gt;</static>
+            <etag name="description"/>
+            <static>&lt;/p&gt; &lt;ul&gt;</static>
+            <section name="a_list">
+              <static>&lt;li&gt;</static>
+              <etag name="label"/>
+              <static>&lt;/li&gt;</static>
+            </section>
+            <static>&lt;/ul&gt;</static>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Reuse of Enums" section="complex">
+      <template>{'{{#terms}}
+        {{name}}
+        {{index}}
+      {{/terms}}
+      {{#terms}}
+        {{name}}
+        {{index}}
+      {{/terms}}
+      '}</template>
+      <hash>{'{
+        terms: [
+          {name: "t1", index: 0},
+          {name: "t2", index: 1},
+        ]
+      }'}</hash>
+      <output><div>t1
+      0
+      t2
+      1
+      t1
+      0
+      t2
+      1</div></output>
+      <parseTree>
+        <multi>
+          <section name="terms">
+            <etag name="name"/>
+            <etag name="index"/>
+            <etag name="/terms"/>
+            <section name="terms"/>
+            <etag name="#terms"/>
+            <etag name="name"/>
+            <etag name="index"/>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
     <test name="Apos" section="complex">
       <template>{'{{apos}}{{control}}'}</template>
       <hash>{'{"apos": "&#39;", "control":"X")}'}</hash>
@@ -503,6 +660,59 @@ declare variable $parser-tests :=
         <multi> 
           <etag name="apos"/> 
           <etag name="control"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Partial Recursion" section="complex">
+      <template>{'{{name}}
+      {{#kids}}
+      {{>partial}}
+      {{/kids}}'}</template>
+      <hash>{'{
+        name: "1",
+        kids: [ { 
+          name: "1.1",
+          children: [
+          {name: "1.1.1"} ] } ] }'}</hash>
+      <output>{'1
+      1.1
+      1.1.1'}</output>
+      <parseTree>
+        <multi>
+          <etag name="name"/>
+          <section name="kids">
+            <partial name="partial"/>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Recursion with Same Names" section="complex">
+      <template>{'{{ name }}
+      {{ description }}
+      {{#terms}}
+        {{name}}
+        {{index}}
+      {{/terms}}'}</template>
+      <hash>{'{
+        name: "name",
+        description: "desc",
+        terms: [
+          {name: "t1", index: 0},
+          {name: "t2", index: 1} ] }'}</hash>
+      <output><div>name
+          desc
+            t1
+            0
+            t2
+            1</div></output>
+      <parseTree>
+        <multi>
+          <etag name="name"/>
+          <etag name="description"/>
+          <section name="terms">
+            <etag name="name"/>
+            <etag name="index"/>
+          </section>
         </multi>
       </parseTree>
     </test>
@@ -516,6 +726,23 @@ declare variable $parser-tests :=
           <etag name="location"/> 
           <static>because I find it</static> 
           <etag name="verb"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Dot Notation with Nested Sections" section="complex">
+      <template>{'{{person.name.first}}'}</template>
+      <hash>{'{ "person": {
+        "name": {"first": "Chris"},
+        "company": "<b>GitHub</b>"
+      } }'}</hash>
+      <output>{'Chris'}</output>
+      <parseTree>
+        <multi> 
+          <section name="person">
+            <section name="name">
+              <etag name="first"/>
+            </section>
+          </section> 
         </multi>
       </parseTree>
     </test>
@@ -560,8 +787,7 @@ declare variable $parser-tests :=
           <etag name="numeric"/>
         </multi>
       </parseTree>
-    </test>
-    
+    </test>    
     <test name="Parser Non-False Values" section="parser">
       <template>{'{{#person?}}
         Hi {{name}}!
@@ -635,230 +861,9 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-
-<!--
-        <test name="" section="">
-          <template>{''}</template>
-          <hash>{''}</hash>
-          <output><div></div></output>
-          <parseTree>
-            <multi/>
-          </parseTree>
-        </test>
-    -->
-<!--
-
-
-    
-  
-    <test name="Dot Notation">
-      <template>{'{{person.name}}'}</template>
-      <hash>{'{ "person": {
-        "name": "Chris",
-        "company": "<b>GitHub</b>"
-      } }'}</hash>
-      <output>{'Chris'}</output>
-      <parseTree>
-        <multi> 
-          <section name="person">
-            <etag name="name"/>
-          </section> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Dot Notation 2">
-      <template>{'{{person.name.first}}'}</template>
-      <hash>{'{ "person": {
-        "name": {"first": "Chris"},
-        "company": "<b>GitHub</b>"
-      } }'}</hash>
-      <output>{'Chris'}</output>
-      <parseTree>
-        <multi> 
-          <section name="person">
-            <section name="name">
-              <etag name="first"/>
-            </section>
-          </section> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Recursive Descendant 2">
-      <template>{'* {{*name}}'}</template>
-      <hash>{'{
-          "people": {
-              "person": {
-                  "name": "Chris"
-              },
-              "name": "Jan" 
-          } 
-      }'}</hash>
-      <output>{'* Chris Jan'}</output>
-      <parseTree>
-        <multi> 
-          <static>*</static>
-          <rtag name="name"/> 
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Array of Strings">
-      <template>{'{{#array_of_strings}}{{.}} {{/array_of_strings}}'}</template>
-      <hash>{'{array_of_strings: ["hello", "world"]}'}</hash>
-      <output>{'hello world'}</output>
-      <parseTree>
-        <multi>
-          <section name="array_of_strings">
-            <etag name="."/>
-          </section>
-        </multi>
-      </parseTree>
-    </test>
-
-    <test name="Partial Recursion">
-      <template>{'{{name}}
-      {{#kids}}
-      {{>partial}}
-      {{/kids}}'}</template>
-      <hash>{'{
-        name: "1",
-        kids: [ { 
-          name: "1.1",
-          children: [
-          {name: "1.1.1"} ] } ] }'}</hash>
-      <output>{'1
-      1.1
-      1.1.1'}</output>
-      <parseTree>
-        <multi>
-          <etag name="name"/>
-          <section name="kids">
-            <partial name="partial"/>
-          </section>
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Recursion with same names">
-      <template>{'{{ name }}
-      {{ description }}
-
-      {{#terms}}
-        {{name}}
-        {{index}}
-      {{/terms}}'}</template>
-      <hash>{'{
-        name: "name",
-        description: "desc",
-        terms: [
-          {name: "t1", index: 0},
-          {name: "t2", index: 1} ] }'}</hash>
-      <output>{'name
-          desc
-            t1
-            0
-            t2
-            1'}</output>
-      <parseTree>
-        <multi>
-          <etag name="name"/>
-          <etag name="description"/>
-          <section name="terms">
-            <etag name="name"/>
-            <etag name="index"/>
-          </section>
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Reuse of enumerables">
-      <template>{'{{#terms}}
-        {{name}}
-        {{index}}
-      {{/terms}}
-      {{#terms}}
-        {{name}}
-        {{index}}
-      {{/terms}}
-      '}</template>
-      <hash>{'{
-        terms: [
-          {name: "t1", index: 0},
-          {name: "t2", index: 1},
-        ]
-      }'}</hash>
-      <output>{'t1
-      0
-      t2
-      1
-      t1
-      0
-      t2
-      1'}</output>
-      <parseTree>
-        <multi>
-          <section name="terms">
-            <etag name="name"/>
-            <etag name="index"/>
-            <etag name="/terms"/>
-            <section name="terms"/>
-            <etag name="#terms"/>
-            <etag name="name"/>
-            <etag name="index"/>
-          </section>
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Section as Context">
-      <template>{'{{#a_object}}
-        <h1>{{title}}</h1>
-        <p>{{description}}</p>
-        <ul>
-          {{#a_list}}
-          <li>{{label}}</li>
-          {{/a_list}}
-        </ul>
-      {{/a_object}}'}</template>
-      <hash>{'{
-        a_object: {
-          title: "this is an object",
-          description: "one of its attributes is a list",
-          a_list: [{label: "listitem1"}, {label: "listitem2"}]
-        }'}</hash>
-      <output>{'<h1>this is an object</h1>
-        <p>one of its attributes is a list</p>
-        <ul>
-              <li>listitem1</li>
-              <li>listitem2</li>
-          </ul>'}</output>
-      <parseTree>
-        <multi>
-          <section name="a_object">
-            <static>&lt;h1&gt;</static>
-            <etag name="title"/>
-            <static>&lt;/h1&gt; &lt;p&gt;</static>
-            <etag name="description"/>
-            <static>&lt;/p&gt; &lt;ul&gt;</static>
-            <section name="a_list">
-              <static>&lt;li&gt;</static>
-              <etag name="label"/>
-              <static>&lt;/li&gt;</static>
-            </section>
-            <static>&lt;/ul&gt;</static>
-          </section>
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Template Partial">
+    <test name="Parser Template Partial" section="parser">
       <template>{'<h1>{{title}}</h1>
       {{>partial}}'}</template>
-      <hash>{'{
-        title: function() {
-          return "Welcome";
-        },
-        partial: {
-          again: "Goodbye"
-        }
-      }'}</hash>
-      <output>{'<h1>Welcome</h1>
-      Again, Goodbye!'}</output>
       <parseTree>
         <multi>
           <static>&lt;h1&gt;</static>
@@ -868,25 +873,32 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <test name="Two in a row">
-      <template>{'{{greeting}}, {{name}}!'}</template>
-      <hash>{'{
-        name: "Joe",
-        greeting: "Welcome" }'}</hash>
-      <output>{'Welcome,Joe!'}</output>
-      <parseTree>
-        <multi>
-          <etag name="greeting"/>
-          <static>,</static>
-          <etag name="name"/>
-          <static>!</static>
-        </multi>
-      </parseTree>
-    </test>
-
-    </test> -->
+<!--
+        <test name="" section="">
+          <template>{''}</template>
+          <hash>{''}</hash>
+          <output><div></div></output>
+          <parseTree>
+            <multi/>
+          </parseTree>
+        </test>
+-->
   </tests> ;
   
+declare function local:summarize( $name, $nodes ) {
+  let $parseTests       := fn:count($nodes/@parseTest)
+  let $compileTests     := fn:count($nodes/@compileTest)
+  let $okParseTests     := fn:count($nodes[@parseTest='ok'])
+  let $nokParseTests    := fn:count($nodes[@parseTest='NOK'])
+  let $okCompileTests   := fn:count($nodes[@compileTest='ok'])
+  let $nokCompileTests  := fn:count($nodes[@compileTest='NOK'])
+  return element {$name}
+  {(attribute total {$parseTests+$compileTests},
+  <parseTests   pass="{$okParseTests}"   fail="{$nokParseTests}"   
+    perc="{if($nokParseTests=0) then '100' else if($okParseTests=0) then '0' else 100 - fn:round(100 * $nokParseTests div $okParseTests)}"/>,
+  <compileTests pass="{$okCompileTests}" fail="{$nokCompileTests}" 
+    perc="{if($nokCompileTests=0) then '100' else if ($okCompileTests=0) then '0' else 100 - fn:round(100 * $nokCompileTests div $okCompileTests)}"/>)} };
+
 declare function local:parser-test( $template, $parseTree ) {
   xdmp:invoke( 'run-parser.xqy', ( xs:QName( 'template' ), $template, xs:QName( 'parseTree' ), $parseTree ) ) };
 
@@ -900,6 +912,7 @@ for $test at $i in $parser-tests/test
 return try {
 let $template       := $test/template/fn:string()
 let $hash           := $test/hash/fn:string()
+let $section        := $test/@section
 let $output         := $test/output/*
 let $parseTree      := $test/parseTree/*
 let $result         := local:parser-test( $template,$parseTree )
@@ -910,7 +923,7 @@ let $compiled       := if($compilerTest) then local:compiler-test( $template, $h
 let $validCompiler  := $compiled [1]
 let $outputCompiler := $compiled [2]
 return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
-         { if($compilerTest) then attribute compileTest {if($validCompiler) then 'ok' else 'NOK'} else () }
+         { $section, if($compilerTest) then attribute compileTest {if($validCompiler) then 'ok' else 'NOK'} else () }
          { fn:string($test/@name)} 
          { if($valid) then ()
            else 
@@ -931,16 +944,13 @@ return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
                 <p> Got: {$outputCompiler} </p>
               </compileTestExplanation>
            else ()}
-       </test> } catch ($e) { <test i="{$i}">{xdmp:log($e),fn:string($test/@name)} Failed with exception</test> }
+       </test> } catch ($e) { <error i="{$i}">{xdmp:log($e),fn:string($test/@name)} Failed with exception</error> }
 } </tests>
-let $parseTests       := fn:count($results/test/@parseTest)
-let $compileTests     := fn:count($results/test/@compileTest)
-let $okParseTests     := fn:count($results/test[@parseTest='ok'])
-let $nokParseTests    := fn:count($results/test[@parseTest='NOK'])
-let $okCompileTests   := fn:count($results/test[@compileTest='ok'])
-let $nokCompileTests  := fn:count($results/test[@compileTest='NOK'])
-return <summary total="{$parseTests+$compileTests}">
-    <parseTests   pass="{$okParseTests}"   fail="{$nokParseTests}"   perc="{if($okParseTests=0) then '100' else 100 - fn:round(100 * $nokParseTests div $okParseTests)}"/>
-    <compileTests pass="{$okCompileTests}" fail="{$nokCompileTests}" perc="{if($okCompileTests=0) then '100' else 100 - fn:round(100 * $nokCompileTests div $okCompileTests)}"/>
+return <result>
+       { local:summarize( 'summary', $results/test ) }
+    <sectionResults>
+      { let $sections := fn:distinct-values($results//@section)
+       for $section in $sections return  local:summarize( $section, $results/test[@section=$section] ) }
+    </sectionResults>
     {$results}
-  </summary>
+  </result>
