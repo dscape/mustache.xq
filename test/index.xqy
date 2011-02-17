@@ -349,6 +349,75 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Simple Whitespace" section="whitespace">
+      <template>{'{{tag}} foo'}</template>
+      <hash>{'{ "tag": "yo" }'}</hash>
+      <output><div>yo foo</div></output>
+      <parseTree>
+        <multi>
+          <etag name="tag"/>
+          <static>foo</static>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Nested Sections" section="complex">
+      <template>{'{{#foo}}
+        {{#a}}
+          {{b}}
+        {{/a}}
+      {{/foo}}'}</template>
+      <hash>{'{ foo: [
+        {a: {b: 1}},
+        {a: {b: 2}},
+        {a: {b: 3}}
+      ] }'}</hash>
+      <output><div>1 2 3</div></output>
+      <parseTree>
+        <multi>
+          <section name="foo">
+            <static/>
+            <section name="a">
+              <etag name="b"/>
+            </section>
+            <static/>
+          </section>
+       </multi>
+      </parseTree>
+    </test>
+    <test name="Book with lots of nested Sections" section="complex">
+      <template>{
+        '{{#book}}
+           {{#section}}
+             {{#section}}
+               {{#section}}
+                 {{p}}
+               {{/section}}
+             {{/section}}
+          {{/section}}
+        {{/book}}'}</template>
+      <hash>{'
+        {"book": {"section": {"section": {"section": {"p": "FOO!"}}}}}'}</hash>
+      <output><div>FOO!</div></output>
+      <parseTree>
+        <multi>
+          <section name="book">
+            <static/>
+            <section name="section">
+              <static/>
+              <section name="section">
+                <static/>
+                <section name="section">
+                  <etag name="p"/>
+                </section>
+                <static/>
+              </section>
+              <static/>
+            </section>
+            <static/>
+          </section>
+        </multi>
+      </parseTree>
+    </test>
     <test name="Colors Sample (Nested Sections)" section="complex">
       <template>{'<h1>{{header}}</h1>
       {{#bug}}
@@ -414,6 +483,17 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
+    <test name="Apos" section="complex">
+      <template>{'{{apos}}{{control}}'}</template>
+      <hash>{'{"apos": "&#39;", "control":"X")}'}</hash>
+      <output><div>&#39;X</div></output>
+      <parseTree>
+        <multi> 
+          <etag name="apos"/> 
+          <etag name="control"/> 
+        </multi>
+      </parseTree>
+    </test>
     <test name="Sequencial Mustaches" section="complex">
       <template>{'I like going to the {{location}} because I find it {{verb}}'}</template>
       <hash>{'{"location": "mall", "verb": "fun"}'}</hash>
@@ -424,6 +504,16 @@ declare variable $parser-tests :=
           <etag name="location"/> 
           <static>because I find it</static> 
           <etag name="verb"/> 
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Not Found" section="complex">
+      <template>{'{{foo}}'}</template>
+      <hash>{'{ "bar": "yo" }'}</hash>
+      <output><div/></output>
+      <parseTree>
+        <multi>
+          <etag name="foo"/>
         </multi>
       </parseTree>
     </test>
@@ -549,19 +639,6 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <test name="Recursive Descendant">
-      <template>{'{{*name}}'}</template>
-      <hash>{'{ "person": {
-        "name": "Chris",
-        "company": "<b>GitHub</b>"
-      } }'}</hash>
-      <output>{'Chris'}</output>
-      <parseTree>
-        <multi> 
-          <rtag name="name"/> 
-        </multi>
-      </parseTree>
-    </test>
     <test name="Recursive Descendant 2">
       <template>{'* {{*name}}'}</template>
       <hash>{'{
@@ -580,17 +657,6 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <test name="Apos">
-      <template>{'{{apos}}{{control}}'}</template>
-      <hash>{'{"apos": "&#39;", "control":"X")}'}</hash>
-      <output>{'&#39;X'}</output>
-      <parseTree>
-        <multi> 
-          <etag name="apos"/> 
-          <etag name="control"/> 
-        </multi>
-      </parseTree>
-    </test>
     <test name="Array of Strings">
       <template>{'{{#array_of_strings}}{{.}} {{/array_of_strings}}'}</template>
       <hash>{'{array_of_strings: ["hello", "world"]}'}</hash>
@@ -603,88 +669,7 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <test name="Whitespace">
-      <template>{'{{tag}} foo'}</template>
-      <hash>{'{ "tag": "yo" }'}</hash>
-      <output>{'yofoo'}</output>
-      <parseTree>
-        <multi>
-          <etag name="tag"/>
-          <static>foo</static>
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Not Found">
-      <template>{'{{foo}}'}</template>
-      <hash>{'{ "bar": "yo" }'}</hash>
-      <output>{''}</output>
-      <parseTree>
-        <multi>
-          <etag name="foo"/>
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Nesting">
-      <template>{'{{#foo}}
-        {{#a}}
-          {{b}}
-        {{/a}}
-      {{/foo}}'}</template>
-      <hash>{'foo: [
-        {a: {b: 1}},
-        {a: {b: 2}},
-        {a: {b: 3}}
-      ]'}</hash>
-      <output>{'1
-        2
-        3'}</output>
-      <parseTree>
-        <multi>
-          <section name="foo">
-            <static/>
-            <section name="a">
-              <etag name="b"/>
-            </section>
-            <static/>
-          </section>
-       </multi>
-      </parseTree>
-    </test>
-    <test name="Book with lots of sections">
-      <template>{
-        '{{#book}}
-           {{#section}}
-             {{#section}}
-               {{#section}}
-                 {{p}}
-               {{/section}}
-             {{/section}}
-          {{/section}}
-        {{/book}}'}</template>
-      <hash>{'
-        {"book":
-      {"section": {"section": {}}}}'}</hash>
-      <output>{''}</output>
-      <parseTree>
-        <multi>
-          <section name="book">
-            <static/>
-            <section name="section">
-              <static/>
-              <section name="section">
-                <static/>
-                <section name="section">
-                  <etag name="p"/>
-                </section>
-                <static/>
-              </section>
-              <static/>
-            </section>
-            <static/>
-          </section>
-        </multi>
-      </parseTree>
-    </test>
+
     <test name="Null String">
       <template>{'Hello {{name}}
       glytch {{glytch}}
@@ -888,21 +873,7 @@ declare variable $parser-tests :=
         </multi>
       </parseTree>
     </test>
-    <test name="Unescaped H1">
-      <template>{'<h1>{{{title}}}</h1>'}</template>
-      <hash>{'{
-        title: function() {
-          return "Bear > Shark";
-        }
-      }'}</hash>
-      <output>{'<h1>Bear > Shark</h1>'}</output>
-      <parseTree>
-        <multi>
-        <static>&lt;h1&gt;</static>
-        <utag name="title"/>
-        <static>&lt;/h1&gt;</static>
-        </multi>
-      </parseTree>
+
     </test> -->
   </tests> ;
   

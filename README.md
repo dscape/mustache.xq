@@ -197,6 +197,8 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Hash     : {}
      Output   : <div><h1>Today.</h1></div>
 
+#### ✕ Nested Sections
+
 #### ✕ Partials
 
 #### ✕ Lambdas

@@ -9,6 +9,7 @@ import module
   at "json.xqy" ;
 
 declare function compiler:compile( $parseTree, $json ) {
+let $_ := xdmp:log((json:jsonToXML( $json ),'-----------------'))
  let $div := xdmp:unquote( fn:concat( '&lt;div&gt;',
    fn:string-join(compiler:compile-xpath( $parseTree, json:jsonToXML( $json ) ), ''),  '&lt;/div&gt;') )
  return compiler:handle-escaping($div) } ;
@@ -40,9 +41,9 @@ declare function compiler:compile-node( $node, $json, $pos, $xpath ) {
         then compiler:compile-xpath( $node, $json, $pos, $xpath ) 
         else
           if ( $sNode/@type = "array" )
-          then
+          then (xdmp:log(("~~~~~~~~~", $sNode)),
             for $n at $p in $sNode/node()
-            return compiler:compile-xpath( $node, $json, $p, fn:concat( fn:node-name($sNode), '/item/' ) )
+            return compiler:compile-xpath( $node, $json, $p, fn:concat( '/', fn:node-name($sNode), '/item' ) ) )
           else ()
     case text() return $node
     default return compiler:compile-xpath( $node, $json ) }; 
@@ -63,8 +64,9 @@ declare function compiler:eval( $node-name, $json, $pos, $xpath, $etag ) {
   } catch ( $e ) { $unpath } };
 
 declare function compiler:unpath( $node-name, $json, $pos, $xpath ) { 
-  xdmp:unpath( fn:concat( '($json/json/', $xpath , $node-name,
-    ')[', $pos, ']' ) ) };
+  xdmp:log(('*******', fn:concat( '($json/json', $xpath, ')[', $pos, ']/', $node-name ))),
+  xdmp:unpath( fn:concat( '($json/json', $xpath, ')[', $pos, ']/', $node-name ) ),
+  xdmp:log(('%%%%%%',xdmp:unpath( fn:concat( '($json/json', $xpath, ')[', $pos, ']/', $node-name, '/../*' ) ))) };
 
 declare function compiler:handle-escaping( $div ) {
   for $n in $div/node()
