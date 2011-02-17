@@ -2,14 +2,45 @@ xquery version "1.0-ml" ;
 
 declare variable $parser-tests :=
   <tests>
-    <test name="Simple Mustache">
-      <template>{'Hello {{word}}'}</template>
+    <test name="Variables (ETag)">
+      <template>{'Hello {{word}}!'}</template>
       <hash>{'{"word": "world"}'}</hash>
-      <output>{'Hello world'}</output>
+      <output><div>Hello world !</div></output>
       <parseTree>
         <multi>
           <static>Hello </static>
           <etag name="word"/>
+          <static>!</static>
+        </multi>
+      </parseTree>
+    </test>
+    <test name="Escaping">
+      <template>{'* {{name}}
+      * {{age}}
+      * {{company}}
+      * {{{company}}}'}</template>
+      <hash>{'{
+        "name": "Chris",
+        "company": "<b>GitHub</b>"
+      }'}</hash>
+      <output>
+        <div>
+          * Chris 
+          *
+          * &lt;b&gt;GitHub&lt;/b&gt;
+          * <b>GitHub</b>
+        </div>
+      </output>
+      <parseTree>
+        <multi> 
+          <static>* </static> 
+          <etag name="name"/> 
+          <static>* </static> 
+          <etag name="age"/> 
+          <static>* </static> 
+          <etag name="company"/> 
+          <static>* </static> 
+          <utag name="company"/> 
         </multi>
       </parseTree>
     </test>
@@ -84,32 +115,6 @@ declare variable $parser-tests :=
             <etag name="taxed_value"/>
             <static>, after taxes.</static>
           </section>
-        </multi>
-      </parseTree>
-    </test>
-    <test name="Escaping">
-      <template>{'* {{name}}
-      * {{age}}
-      * {{company}}
-      * {{{company}}}'}</template>
-      <hash>{'{
-        "name": "Chris",
-        "company": "<b>GitHub</b>"
-      }'}</hash>
-      <output>{'* Chris
-      *
-      * &lt;b&gt;GitHub&lt;/b&gt;
-      * <b>GitHub</b>'}</output>
-      <parseTree>
-        <multi> 
-          <static>*</static> 
-          <etag name="name"/> 
-          <static>*</static> 
-          <etag name="age"/> 
-          <static>*</static> 
-          <etag name="company"/> 
-          <static>*</static> 
-          <utag name="company"/> 
         </multi>
       </parseTree>
     </test>
@@ -731,8 +736,8 @@ declare variable $parser-tests :=
 declare function local:parser-test( $template, $parseTree ) {
   xdmp:invoke( 'run-parser.xqy', ( xs:QName( 'template' ), $template, xs:QName( 'parseTree' ), $parseTree ) ) };
 
-declare function local:compiler-test( $parseTree, $hash, $output ) {
-    xdmp:invoke( 'run-compiler.xqy', ( xs:QName( 'parseTree' ), $parseTree, xs:QName( 'hash' ), $hash,
+declare function local:compiler-test( $template, $hash, $output ) {
+    xdmp:invoke( 'run-compiler.xqy', ( xs:QName( 'template' ), $template, xs:QName( 'hash' ), $hash,
       xs:QName( 'output' ), $output ) ) };
 
 xdmp:set-response-content-type('application/xml'),
@@ -741,13 +746,13 @@ for $test at $i in $parser-tests/test
 return try {
 let $template       := $test/template/fn:string()
 let $hash           := $test/hash/fn:string()
-let $output         := $test/output/fn:string()
+let $output         := $test/output/*
 let $parseTree      := $test/parseTree/*
 let $result         := local:parser-test( $template,$parseTree )
 let $valid          := $result [1]
 let $mTree          := $result [2]
 let $compilerTest   := $hash and $output and $parseTree
-let $compiled       := if($compilerTest) then local:compiler-test( $parseTree, $hash, $output ) else ()
+let $compiled       := if($compilerTest) then local:compiler-test( $template, $hash, $output ) else ()
 let $validCompiler  := $compiled [1]
 let $outputCompiler := $compiled [2]
 return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
@@ -767,7 +772,6 @@ return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
               <compileTestExplanation> 
                 {xdmp:log((fn:concat($i, ' >> compile: ')))}
                 <p> Template: {$template} </p>
-                <p> parseTree: {$parseTree} </p>
                 <p> Hash: {$hash} </p>
                 <p> Expected: {$output} </p>
                 <p> Got: {$outputCompiler} </p>

@@ -9,7 +9,8 @@ import module
   at "json.xqy" ;
 
 declare function compiler:compile( $parseTree, $json ) {
-  fn:normalize-space( fn:string-join( compiler:compile-xpath( $parseTree, json:jsonToXML( $json ), fn:true() ), '' ) ) } ;
+ <div> { 
+   compiler:compile-xpath( $parseTree, json:jsonToXML( $json ), fn:true() ) } </div> } ;
 
 declare function compiler:compile-xpath( $parseTree, $json, $dispEtag ) { 
   for $node in $parseTree/node() return compiler:compile-node( $node, $json, $dispEtag ) } ;
@@ -17,6 +18,7 @@ declare function compiler:compile-xpath( $parseTree, $json, $dispEtag ) {
 declare function compiler:compile-node( $node, $json, $dispEtag ) {
   typeswitch($node)
     case element(etag)   return if($dispEtag) then compiler:eval( $node/@name, $json ) else ()
+    case element(utag)   return if($dispEtag) then compiler:eval( $node/@name, $json, fn:false() ) else ()
     case element(static) return $node/fn:string()
     case element(section) return
       let $keyValue := compiler:unpath( fn:string( $node/@name ) , $json )/@boolean = 'true'
@@ -25,9 +27,12 @@ declare function compiler:compile-node( $node, $json, $dispEtag ) {
     default return compiler:compile-xpath( $node, $json, fn:true() ) }; 
 
 declare function compiler:eval( $node-name, $json ) { 
+  compiler:eval($node-name, $json, fn:true() ) };
+
+declare function compiler:eval( $node-name, $json, $etag ) { 
   let $unpath :=  compiler:unpath( $node-name, $json )
   return try {
-    fn:string( xdmp:eval( $unpath ) )
+    if ($etag) then fn:string( xdmp:eval( xdmp:quote($unpath) ) ) else xdmp:unquote($unpath)/*
   } catch ( $e ) { $unpath } };
 
 declare function compiler:unpath( $node-name, $json ) { 
