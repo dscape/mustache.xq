@@ -73,6 +73,8 @@ Outputs:
       </li>
     </div>
 
+For more (fun) examples refer to test/tests.xml. If you are new to mustache you can use it to learn more about it.
+
 ## Contribute
 
 Everyone is welcome to contribute. 
@@ -132,75 +134,30 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Hash     : { "x": ( xs:integer(4) + 5 ) * 2 }
      Output   : <div>18</div>
 
-####  ✔ Escaped Variables with {{{var}}}
+####  ✔ Escaped Variables
      Template : {{company}} {{{company}}}
      Hash     : { "company": "<b>MarkLogic</b>" }
      Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
-
-####  ✔ Escaped Variables with {{&var}}
-     Template : {{company}} {{&company}}
-     Hash     : { "company": "<b>MarkLogic</b>" }
-     Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
-
-####  ✔ Missing Sections
-     Template : Shown. {{#nothin}} Never shown! {{/nothin}}
-     Hash     : { "person": true }
-     Output   : <div>Shown.</div>
-
-####  ✔ True Sections
-     Template : Shown. {{#nothin}} Also shown! {{/nothin}}
-     Hash     : { "nothin": true }
-     Output   : <div>Shown. Also shown!</div>
-
-####  ✔ False Sections
-     Template : Shown. {{#nothin}} Not shown! {{/nothin}}
-     Hash     : { "nothin": false }
-     Output   : <div>Shown.</div>
-
-####  ✔ Empty List Sections
-     Template : Shown. {{#nothin}} Not shown! {{/nothin}}
-     Hash     : { "nothin": [] }
-     Output   : <div>Shown.</div>
-
-####  ✔ Non-Empty List Sections
-     Template : {{#repo}} <b>{{name}}</b> {{/repo}}
-     Hash     : { "repo": [ { "name": "resque" }, { "name": "hub" }, { "name": "rip" } ] }
-     Output   : <div><b>resque</b><b>hub</b><b>rip</b></div>
-
-####  ✔ Missing Inverted Sections
-     Template : Shown. {{^nothin}} Also shown! {{/nothin}}
-     Hash     : { "person": true }
-     Output   : <div>Shown. Also shown!</div>
-
-####  ✔ True Inverted Sections
-     Template : Shown. {{^nothin}} Not shown! {{/nothin}}
-     Hash     : { "nothin": true }
-     Output   : <div>Shown.</div>
-
-####  ✔ False Inverted Sections
-     Template : Shown. {{^nothin}} Also shown! {{/nothin}}
-     Hash     : { "nothin": false }
-     Output   : <div>Shown. Also shown!</div>
-
-####  ✔ Empty List Inverted Sections
-     Template : Shown. {{^nothin}} Also shown! {{/nothin}}
-     Hash     : { "nothin": [] }
-     Output   : <div>Shown. Also shown!</div>
-
-####  ✔ Non-Empty Inverted List Sections
-     Template : Test {{^repo}} <b>{{name}}</b> {{/repo}}
-     Hash     : { "repo": [ { "name": "resque" }, { "name": "hub" }, { "name": "rip" } ] }
-     Output   : <div>Test </div>
 
 ####  ✔ Comments
      Template : <h1>Today{{! ignore me }}.</h1>
      Hash     : {}
      Output   : <div><h1>Today.</h1></div>
 
+####  ✔ Sections
+     Template : Shown. {{#nothin}} Never shown! {{/nothin}}
+     Hash     : { "person": true }
+     Output   : <div>Shown.</div>
+
 ####  ✔ Nested Sections
      Template : {{#foo}}{{#a}}{{b}}{{/a}}{{/foo}}
      Hash     : { foo: [ {a: {b: 1}}, {a: {b: 2}}, {a: {b: 3}} ] }
      Output   : <div>1 2 3</div>
+
+####  ✔ Conditional Sections
+     Template : {{#repo}} <b>{{name}}</b> {{/repo}} {{^repo}} No repos :( {{/repo}}
+     Hash     :   { "repo": [] }
+     Output   : <div>No Repos :(</div>
 
 ####  ✕ Partials
 
@@ -219,11 +176,6 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Template : * {{*name}}
      Hash     : { "people": { "person": { "name": "Chris" }, "name": "Jan" } }
      Output   : <div>* Chris Jan</div>
-
-####  ✔ Descendant Variable inside a Section
-     Template : {{#people}}{{#person}}{{*name}}{{/person}}{{/people}}
-     Hash     : { "people": { "person": { "name": "Chris", "name": "Kelly"}, "name": "Jan" } }
-     Output   : <div>Chris Kelly</div>
 
 ### Known Limitations
 
@@ -244,7 +196,10 @@ To better understand what is supported refer to the Supported Features section
 * Discussion: <http://convore.com/mustache>
 * Bugs: <http://github.com/dscape/mustache.xq/issues>
 
+(oO)--',- in [caos][5]
+
 [1]: http://code.google.com/p/google-ctemplate/
 [2]: http://www.ivan.fomichev.name/2008/05/erlang-template-engine-prototype.html
 [3]: http://github.com/dscape/mustache.xq/issues
 [4]: http://marklogic.com
+[5]: http://caos.di.uminho.pt/
