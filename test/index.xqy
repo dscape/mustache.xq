@@ -31,11 +31,11 @@ return try {
 let $template       := $test/template/fn:string()
 let $hash           := $test/hash/fn:string()
 let $section        := $test/@section
-let $output         := $test/output/*
 let $parseTree      := $test/parseTree/*
 let $result         := local:parser-test( $template,$parseTree )
 let $valid          := $result [1]
 let $mTree          := $result [2]
+let $output         := if ($valid) then $test/output/* else () (: Don't run compile tests if parsing failed :)
 let $compilerTest   := $hash and $output and $parseTree
 let $compiled       := if($compilerTest) then local:compiler-test( $template, $hash, $output ) else ()
 let $validCompiler  := $compiled [1]

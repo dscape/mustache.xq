@@ -1,0 +1,8 @@
+<package type="library">
+  <name>mustache</name>
+  <author>Nuno Job</author>
+  <description>Minimal templating with {{mustache}} in XQuery</description>
+  <repo>git@github.com:dscape/mustache.xq.git</repo>
+  <keywords>template, mustache, json</keywords>
+  <version>0.1</version>
+</package>

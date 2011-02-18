@@ -1,6 +1,5 @@
+# Contributors
+
 * Nuno Job     (@dscape)
-  Regexp Parser, Compiler, Tests
 * John Snelson (@jpcs)
-  Proper Parser
 * Ryan Grimm   (@isubiker)
-  JSON Library

@@ -808,15 +808,6 @@
       </multi>
     </parseTree>
   </test>
-  <test name="Parser Simple Partial &lt;"  section="parser">
-    <template>{'Hello {{< world}}'}</template>
-    <parseTree>
-      <multi> 
-        <static>Hello</static> 
-        <partial name="world"/> 
-      </multi>
-    </parseTree>
-  </test>
   <test name="Parser Simple Comment" section="parser">
     <template>{'Hello World
       {{! author }}

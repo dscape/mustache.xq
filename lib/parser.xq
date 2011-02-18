@@ -57,7 +57,7 @@ declare function parseContent($in as xs:string?, $sd as xs:string, $ed as xs:str
        element multi { attribute remain { $remain } }
      else if($token eq $parser:_STRING_) then
        let $r1 := parseContent( $remain, $sd, $ed )
-       return element multi { $r1/@remain, text { $r/@value }, $r1/node() }
+       return element multi { $r1/@remain, element static { $r/@value/fn:string() }, $r1/node() }
      else error($r)
 };
 
