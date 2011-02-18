@@ -12,9 +12,9 @@ declare function local:summarize( $name, $nodes ) {
   return element {$name}
   {(attribute total {$parseTests+$compileTests},
   <parseTests   pass="{$okParseTests}"   fail="{$nokParseTests}"   
-    perc="{if($nokParseTests=0) then '100' else if($okParseTests=0) then '0' else 100 - fn:round(100 * $nokParseTests div $okParseTests)}"/>,
+    perc="{if($nokParseTests=0) then '100' else fn:round(100 * $okParseTests div ($okParseTests+ $nokParseTests))}"/>,
   <compileTests pass="{$okCompileTests}" fail="{$nokCompileTests}" 
-    perc="{if($nokCompileTests=0) then '100' else if ($okCompileTests=0) then '0' else 100 - fn:round(100 * $nokCompileTests div $okCompileTests)}"/>)} };
+    perc="{if ($nokCompileTests=0) then '100' else fn:round(100 * $okCompileTests div ($okCompileTests+$nokCompileTests))}"/>)} };
 
 declare function local:parser-test( $template, $parseTree ) {
   xdmp:invoke( 'run-parser.xqy', ( xs:QName( 'template' ), $template, xs:QName( 'parseTree' ), $parseTree ) ) };
@@ -25,7 +25,7 @@ declare function local:compiler-test( $template, $hash, $output ) {
 
 xdmp:set-response-content-type('application/xml'),
 let $results := <tests> {
-for $test at $i in $tests//test [30]
+for $test at $i in $tests//test
 order by $test/@section
 return try {
 let $template       := $test/template/fn:string()
