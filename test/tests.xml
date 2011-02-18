@@ -375,6 +375,31 @@
       </multi>
     </parseTree>
   </test>
+  <test name="No Repos Inverted Sections with Inverted First" section="inverted-section">
+    <template>{'{{^repo}}
+        No repos :(
+      {{/repo}}
+      {{#repo}}
+      <b>{{name}}</b>
+    {{/repo}}
+    '}</template>
+    <hash>{'{
+      "repo": []
+    }'}</hash>
+    <output><div>No repos :(</div></output>
+    <parseTree>
+      <multi> 
+        <inverted-section name="repo"> 
+          <static>No repos :(</static> 
+        </inverted-section> 
+        <section name="repo"> 
+          <static>&lt;b&gt;</static> 
+          <etag name="name"/> 
+          <static>&lt;/b&gt;</static> 
+        </section> 
+      </multi>
+    </parseTree>
+  </test>
   <test name="Simple Whitespace" section="whitespace">
     <template>{'{{tag}} foo'}</template>
     <hash>{'{ "tag": "yo" }'}</hash>
@@ -669,29 +694,6 @@
       </multi>
     </parseTree>
   </test>
-  <test name="Partial Recursion" section="complex">
-    <template>{'{{name}}
-    {{#kids}}
-    {{>partial}}
-    {{/kids}}'}</template>
-    <hash>{'{
-      name: "1",
-      kids: [ { 
-        name: "1.1",
-        children: [
-        {name: "1.1.1"} ] } ] }'}</hash>
-    <output><div>1
-    1.1
-    1.1.1</div></output>
-    <parseTree>
-      <multi>
-        <etag name="name"/>
-        <section name="kids">
-          <partial name="partial"/>
-        </section>
-      </multi>
-    </parseTree>
-  </test>
   <test name="Recursion with Same Names" section="complex">
     <template>{'{{ name }}
     {{ description }}
@@ -773,6 +775,20 @@
           <etag name="name"/> 
           <static>!</static> 
         </section> 
+      </multi>
+    </parseTree>
+  </test>
+  <test name="Partial Recursion" section="parser">
+    <template>{'{{name}}
+    {{#kids}}
+    {{>partial}}
+    {{/kids}}'}</template>
+    <parseTree>
+      <multi>
+        <etag name="name"/>
+        <section name="kids">
+          <partial name="partial"/>
+        </section>
       </multi>
     </parseTree>
   </test>

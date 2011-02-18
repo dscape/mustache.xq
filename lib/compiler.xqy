@@ -43,7 +43,7 @@ declare function compiler:compile-node( $node, $json, $pos, $xpath ) {
         then compiler:compile-xpath( $node, $json, $pos, $xpath ) 
         else
           if ( $sNode/@type = "array" )
-          then (xdmp:log(("~~~~~~~~~", $sNode)),
+          then (
             for $n at $p in $sNode/node()
             return compiler:compile-xpath( $node, $json, $p, fn:concat( '/', fn:node-name($sNode), '/item' ) ) )
           else ()
@@ -77,8 +77,6 @@ declare function compiler:unpath( $node-name, $json, $pos, $xpath, $desc ) {
   let $xp := if ($desc='desc') 
     then fn:concat('$json/json//', $node-name) 
     else fn:concat( '($json/json', $xpath, ')[', $pos, ']/', $node-name )
-  let $_ := xdmp:log(('*******', $xp))
-  let $_ := xdmp:log(('%%%%%%%', xdmp:unpath( $xp )))
   return xdmp:unpath( $xp ) };
 
 declare function compiler:handle-escaping( $div ) {
