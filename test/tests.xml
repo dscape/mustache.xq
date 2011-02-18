@@ -674,9 +674,8 @@
         <section name="terms">
           <etag name="name"/>
           <etag name="index"/>
-          <etag name="/terms"/>
-          <section name="terms"/>
-          <etag name="#terms"/>
+        </section>
+        <section name="terms">
           <etag name="name"/>
           <etag name="index"/>
         </section>
