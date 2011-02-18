@@ -187,9 +187,13 @@
         { "name": "rip" }
       ]
     }'}</hash>
-    <output><div><b>resque</b>
-    <b>hub</b>
-    <b>rip</b></div></output>
+    <output>
+      <div> 
+        <b>resque</b> 
+        <b>hub</b> 
+        <b>rip</b> 
+      </div>
+    </output>
     <parseTree>
       <multi> 
         <section name="repo"> 
@@ -400,7 +404,7 @@
       </multi>
     </parseTree>
   </test>
-  <test name="Descendant Extension Inside Section" section="ext">
+  <test name="Descendant Extension Inside Section" section="complex">
     <template>{'* {{#people}}{{#person}}{{*name}}{{/person}}{{/people}}'}</template>
     <hash>{'{
         "people": {
@@ -414,12 +418,16 @@
     <output><div>* Chris * Kelly</div></output>
     <parseTree>
       <multi> 
-        <static>*</static>
-        <rtag name="name"/> 
+        <static>*</static> 
+        <section name="people"> 
+          <section name="person"> 
+            <rtag name="name"/> 
+          </section> 
+        </section> 
       </multi>
     </parseTree>
   </test>
-  <test name="Dot Notation Sections" section="dot">
+  <test name="Dot Notation Sections" section="complex">
     <template>{'{{person.name}}'}</template>
     <hash>{'{ "person": {
       "name": "Chris",
@@ -672,9 +680,9 @@
         name: "1.1",
         children: [
         {name: "1.1.1"} ] } ] }'}</hash>
-    <output>{'1
+    <output><div>1
     1.1
-    1.1.1'}</output>
+    1.1.1</div></output>
     <parseTree>
       <multi>
         <etag name="name"/>
@@ -733,7 +741,7 @@
       "name": {"first": "Chris"},
       "company": "<b>GitHub</b>"
     } }'}</hash>
-    <output>{'Chris'}</output>
+    <output><div>Chris</div></output>
     <parseTree>
       <multi> 
         <section name="person">
@@ -754,38 +762,6 @@
       </multi>
     </parseTree>
   </test>
-  <test name="Nil" section="complex">
-    <template>{'Hello {{name}}
-    glytch {{glytch}}
-    binary {{binary}}
-    value {{value}}
-    numeric {{numeric}}'}</template>
-    <hash>{'{
-      name: "Elise",
-      glytch: true,
-      binary: false,
-      value: null,
-      numeric: NaN}'}</hash>
-    <output><div>Hello Elise
-    glytch true
-    binary false
-    value
-    numeric NaN</div></output>
-    <parseTree>
-      <multi>
-        <static>Hello</static>
-        <etag name="name"/>
-        <static>glytch</static>
-        <etag name="glytch"/>
-        <static>binary</static>
-        <etag name="binary"/>
-        <static>value</static>
-        <etag name="value"/>
-        <static>numeric</static>
-        <etag name="numeric"/>
-      </multi>
-    </parseTree>
-  </test>    
   <test name="Parser Non-False Values" section="parser">
     <template>{'{{#person?}}
       Hi {{name}}!
