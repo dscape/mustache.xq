@@ -45,7 +45,6 @@ declare function parser:parse( $template ) {
 
 declare function  parser:fixSections($seq, $etagsToBeFixed, $before, $after ) {
   let $currentSection := $etagsToBeFixed [1]
-"CURRENT", $currentSection,'BEFORE',$before,"AFTER",$after,""))
   return 
     if ($currentSection/@name=$seq/@name)
     then
