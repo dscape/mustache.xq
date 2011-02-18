@@ -35,13 +35,8 @@ declare variable $parser:r-sections :=
 
 (: ~ parser :)
 declare function parser:parse( $template ) {
-(:  let $sections :=
-    <multi> {
-    parser:passthru-sections( fn:analyze-string($template, $parser:r-sections, 's' ) )
-    } </multi>
-    :)
+
   let $simple   := <multi> { parser:passthru-simple(fn:analyze-string($template, $parser:r-mustaches)) } </multi>
-  let $_ := xdmp:log($simple)
   let $fixedNestedSections := <multi>{
     let $etagsToBeFixed := $simple/etag [fn:starts-with(@name, $parser:osec) or fn:starts-with(@name, $parser:oisec)]
       return parser:fixSections($simple/*, $etagsToBeFixed, (), () )
@@ -50,7 +45,6 @@ declare function parser:parse( $template ) {
 
 declare function  parser:fixSections($seq, $etagsToBeFixed, $before, $after ) {
   let $currentSection := $etagsToBeFixed [1]
-let $_ := xdmp:log(("~~~~~~~",'SEQ:',xdmp:quote($seq), "ETAGS", xdmp:quote($etagsToBeFixed), 
 "CURRENT", $currentSection,'BEFORE',$before,"AFTER",$after,""))
   return 
     if ($currentSection/@name=$seq/@name)
@@ -59,7 +53,6 @@ let $_ := xdmp:log(("~~~~~~~",'SEQ:',xdmp:quote($seq), "ETAGS", xdmp:quote($etag
       let $symbol         := 
       if(fn:replace( $currentSection/@name, fn:concat('(',$parser:r-sec,').*'), '$1')=$parser:oisec)
       then $parser:osec else $parser:oisec
-let $_ := xdmp:log($symbol)
       let $inverted       := 
         let $node := $seq [ @name = fn:concat( $symbol, $name ) ] [ fn:last() ]
         return if($node is $currentSection) then () else $node
@@ -67,15 +60,12 @@ let $_ := xdmp:log($symbol)
       let $closingSection := 
         if ($inverted)
         then 
-let $_ := xdmp:log('inverted') return
           $inverted/preceding-sibling::etag [@name=fn:concat( $parser:csec, $name )] [1]
         else   
-let $_ := xdmp:log('noninverted') return         
         $seq [ fn:matches( @name, fn:concat( $parser:csec , '\s*', $name, '\s*' ) ) ] [ fn:last() ]
       return
         if ( $closingSection )
         then
-let $_ := xdmp:log(("+++++", "INVERTED", xdmp:quote($inverted), "CLOSING", xdmp:quote( $closingSection), "FOLLOW INVERT", xdmp:quote( $following-inverted)))
             let $beforeClose    := $closingSection/preceding-sibling::*,
                 $afterClose     := $closingSection/following-sibling::* [if($after) then . << $after else fn:true()] 
                   except $following-inverted,
@@ -97,7 +87,6 @@ let $_ := xdmp:log(("+++++", "INVERTED", xdmp:quote($inverted), "CLOSING", xdmp:
               $afterClose)
         else fn:error( (),  fn:concat( "no end of section for: ", $name ) )
     else 
-let $_ := xdmp:log(("@@@@", "RESULT", xdmp:quote($seq))) return    
     $seq };
 
 declare function parser:passthru-simple( $nodes ) {
