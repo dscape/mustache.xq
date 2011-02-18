@@ -46,7 +46,6 @@ return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
          { if($valid) then ()
            else 
              <parseTestExplanation> 
-               {xdmp:log((fn:concat($i, ' failed on >> parse: ')))}
                <p> Template: {$template} </p>
                <p> Expected: {$parseTree} </p>  
                <p> Got: {$mTree} </p>
@@ -55,14 +54,16 @@ return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
            then if($validCompiler) then ()
            else 
               <compileTestExplanation> 
-                {xdmp:log((fn:concat($i, ' failed on >> compile: ')))}
                 <p> Template: {$template} </p>
                 <p> Hash: {$hash} </p>
                 <p> Expected: {$output} </p>
                 <p> Got: {$outputCompiler} </p>
               </compileTestExplanation>
            else ()}
-       </test> } catch ($e) { <test type="ERROR" i="{$i}"  parseTest="NOK" compileTest="NOK">{xdmp:log($e),fn:string($test/@name)} Failed with exception</test> }
+       </test> } catch ($e) { <test type="ERROR" i="{$i}"  parseTest="NOK" compileTest="NOK">{
+         $test/@name}
+         <stackTrace>{$e}</stackTrace>
+         </test> }
 } </tests>
 return <result>
        { local:summarize( 'summary', $results/test ) }

@@ -160,7 +160,7 @@ This is not the actual test that we run (you can see a list of those in test/ind
 
 ####  ✕ Set Delimiter
 
-### Add-Ons 
+### Extensions
 
 ####  ✔ Variables with embedded XQuery
      Template : {{x}}
@@ -185,8 +185,6 @@ To better understand what is supported refer to the Supported Features section
 * Test cases can only be run in MarkLogic.
 * Bundled generator is MarkLogic Specific "1.0-ml".
 * Output is returned inside a <div/> tag. This is to support escaping.
-* Sections don't support empty list as false
-* Tests do not display results per test group (etag, utag, section, whitespace, etc...)
 * Key names must be valid QNames (limitation of json.xqy and generator.xqy)
 
 ## Meta
