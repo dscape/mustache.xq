@@ -616,11 +616,19 @@
       </ul>
     {{/a_object}}'}</template>
     <hash>{'{
-      a_object: {
-        title: "this is an object",
-        description: "one of its attributes is a list",
-        a_list: [{label: "listitem1"}, {label: "listitem2"}]
-      }'}</hash>
+        "a_object": {
+            "title": "this is an object",
+            "description": "one of its attributes is a list",
+            "a_list": [
+                {
+                    "label": "listitem1" 
+                },
+                {
+                    "label": "listitem2" 
+                } 
+            ] 
+        } 
+    }'}</hash>
     <output><div><h1>this is an object</h1>
       <p>one of its attributes is a list</p>
       <ul>
