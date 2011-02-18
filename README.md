@@ -129,11 +129,6 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Hash     : { "car": "bmw"}
      Output   : <div>bmw</div>
 
-####  ✔ Variables with embedded XQuery
-     Template : {{x}}
-     Hash     : { "x": ( xs:integer(4) + 5 ) * 2 }
-     Output   : <div>18</div>
-
 ####  ✔ Unescaped Variables
      Template : {{company}} {{{company}}}
      Hash     : { "company": "<b>MarkLogic</b>" }
@@ -166,6 +161,11 @@ This is not the actual test that we run (you can see a list of those in test/ind
 ####  ✕ Set Delimiter
 
 ### Add-Ons 
+
+####  ✔ Variables with embedded XQuery
+     Template : {{x}}
+     Hash     : { "x": ( xs:integer(4) + 5 ) * 2 }
+     Output   : <div>18</div>
 
 ####  ✔ Dot Notation
      Template :{{person.name.first}}
