@@ -197,15 +197,23 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Hash     : {}
      Output   : <div><h1>Today.</h1></div>
 
-#### ✕ Nested Sections
+####  ✔ Nested Sections
+     Template : {{#foo}}{{#a}}{{b}}{{/a}}{{/foo}}
+     Hash     : { foo: [ {a: {b: 1}}, {a: {b: 2}}, {a: {b: 3}} ] }
+     Output   : <div>1 2 3</div>
 
-#### ✕ Partials
+####  ✕ Partials
 
-#### ✕ Lambdas
+####  ✕ Lambdas
 
-#### ✕ Set Delimiter
+####  ✕ Set Delimiter
 
 ### Add-Ons 
+
+####  ✔ Dot Notation
+     Template :{{person.name.first}}
+     Hash     :{ "person": { "name": { "first": "Eric" } } }
+     Output   :<div>Eric</div>
 
 ####  ✔ Descendant Variable
      Template : * {{*name}}
