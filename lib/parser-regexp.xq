@@ -2,7 +2,7 @@
   XQuery Parser for mustache
   Hybrid between proper parser and state machine (regexp)
 :)
-xquery version "1.0-ml" ;
+xquery version "1.0" ;
 module namespace parser = "parser.xq" ;
 
 declare namespace s = "http://www.w3.org/2009/xpath-functions/analyze-string" ;
@@ -41,12 +41,10 @@ declare function parser:parse( $template ) {
     } </multi>
     :)
   let $simple   := <multi> { parser:passthru-simple(fn:analyze-string($template, $parser:r-mustaches)) } </multi>
-  let $_ := xdmp:log(('~~~~~~~~~~~', $simple))
   let $fixedNestedSections := <multi>{
     let $etagsToBeFixed := $simple/etag [fn:starts-with(@name, $parser:osec) or fn:starts-with(@name, $parser:oisec)]
       return parser:fixSections($simple/*, $etagsToBeFixed, (), () )
   }</multi>
-  let $_ := xdmp:log(('^^^^^^^^^', $fixedNestedSections))
   return $fixedNestedSections };
 
 declare function  parser:fixSections($seq, $etagsToBeFixed, $before, $after ) {
@@ -55,7 +53,6 @@ declare function  parser:fixSections($seq, $etagsToBeFixed, $before, $after ) {
     if ($currentSection)
     then
       let $name           := fn:replace( $currentSection/@name, $parser:r-sec, '')
-      let $_ := xdmp:log(('%%%%%',$seq))
       let $closingSection := $seq [ fn:matches( @name, fn:concat( '/\s*',$name,'\s*' ) ) ] [ fn:last() ]
       return
         if ( $closingSection )
@@ -74,31 +71,19 @@ declare function  parser:fixSections($seq, $etagsToBeFixed, $before, $after ) {
         else fn:error( (),  fn:concat( "no end of section for: ", $name ) )
     else $seq };
 
-declare function parser:passthru-sections($nodes) {
-  for $node in $nodes/node() return parser:dispatch-sections($node) };
-
-declare function parser:dispatch-sections( $node ) {
-  typeswitch($node)
-    case element(s:non-match) return $node/fn:string()
-    case element(s:match) return element 
-      { if ($node/s:group[@nr=2]='#') then 'section' else 'inverted-section' } 
-      { attribute name {$node/s:group[@nr=3]/fn:string() },
-      $node/s:group[@nr=6]/fn:string() }
-    default return parser:passthru-sections($node) };
-
 declare function parser:passthru-simple( $nodes ) {
   for $node in $nodes/node() return parser:dispatch-simple($node) };
 
 declare function parser:dispatch-simple( $node ) {
   typeswitch($node)
-    case element(s:non-match) return <static>{$node/fn:string()}</static>
+    case element(s:non-match) return <static>{fn:replace($node,'\}', '')}</static>
     case element(s:match) return 
       let $modifier := $node/s:group[@nr=2]
       let $g3       := $node/s:group[@nr=3]
       let $contents := 
         if (fn:matches($modifier, $parser:r-osec))
         then fn:concat($modifier, $g3) else $g3
-      let $normalized-contents :=  fn:normalize-space(fn:replace($contents,'\}$', '')) 
+      let $normalized-contents :=  fn:normalize-space($contents) 
       let $is-section := fn:contains( $normalized-contents, '.' ) and fn:not($normalized-contents='.')
       return 
         if($is-section)

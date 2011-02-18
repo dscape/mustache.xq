@@ -203,7 +203,7 @@
   <test name="Array of Strings" section="section">
     <template>{'{{#array_of_strings}} {{.}}! {{/array_of_strings}}'}</template>
     <hash>{'{array_of_strings: ["hello", "world"]}'}</hash>
-    <output><div>hello world</div></output>
+    <output><div>hello! world!</div></output>
     <parseTree>
       <multi>
         <section name="array_of_strings">
