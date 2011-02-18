@@ -207,7 +207,11 @@ This is not the actual test that we run (you can see a list of those in test/ind
 
 ### Add-Ons 
 
-Not yet
+####  ✔ Descendant Variable
+     Template : {'* {{*name}}'}
+     Hash     : { "people": { "person": { "name": "Chris" }, "name": "Jan" } }
+     Output   : <div>* Chris Jan</div>
+
 
 ### Known Limitations
 

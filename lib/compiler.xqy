@@ -26,6 +26,8 @@ declare function compiler:compile-node( $node, $json, $pos, $xpath ) {
   typeswitch($node)
     case element(etag)    return compiler:eval( $node/@name, $json, $pos, $xpath )
     case element(utag)    return compiler:eval( $node/@name, $json, $pos, $xpath, fn:false() )
+    case element(rtag)    return 
+      fn:string-join(compiler:eval( $node/@name, $json, $pos, $xpath, fn:true(), 'desc' ), " ")
     case element(static)  return $node /fn:string()
     case element(comment) return ()
     case element(inverted-section) return
@@ -55,7 +57,11 @@ declare function compiler:eval( $node-name, $json, $pos, $xpath ) {
   compiler:eval($node-name, $json, $pos, $xpath, fn:true() ) };
 
 declare function compiler:eval( $node-name, $json, $pos, $xpath, $etag ) { 
-  let $unpath :=  compiler:unpath( $node-name, $json, $pos, $xpath )
+ compiler:eval( $node-name, $json, $pos, $xpath, $etag, '' )
+};
+
+declare function compiler:eval( $node-name, $json, $pos, $xpath, $etag, $desc ) { 
+  let $unpath :=  compiler:unpath( $node-name, $json, $pos, $xpath, $desc )
   return try {
     let $value := fn:string( xdmp:eval( xdmp:quote( $unpath ) ) )
     return if ($etag) 
@@ -64,9 +70,16 @@ declare function compiler:eval( $node-name, $json, $pos, $xpath, $etag ) {
   } catch ( $e ) { $unpath } };
 
 declare function compiler:unpath( $node-name, $json, $pos, $xpath ) { 
-  xdmp:log(('*******', fn:concat( '($json/json', $xpath, ')[', $pos, ']/', $node-name ))),
-  xdmp:unpath( fn:concat( '($json/json', $xpath, ')[', $pos, ']/', $node-name ) ),
-  xdmp:log(('%%%%%%',xdmp:unpath( fn:concat( '($json/json', $xpath, ')[', $pos, ']/', $node-name, '/../*' ) ))) };
+  compiler:unpath( $node-name, $json, $pos, $xpath, '' )
+};
+
+declare function compiler:unpath( $node-name, $json, $pos, $xpath, $desc ) { 
+  let $xp := if ($desc='desc') 
+    then fn:concat('$json/json//', $node-name) 
+    else fn:concat( '($json/json', $xpath, ')[', $pos, ']/', $node-name )
+  let $_ := xdmp:log(('*******', $xp))
+  let $_ := xdmp:log(('%%%%%%%', xdmp:unpath( $xp )))
+  return xdmp:unpath( $xp ) };
 
 declare function compiler:handle-escaping( $div ) {
   for $n in $div/node()
