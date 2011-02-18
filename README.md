@@ -134,7 +134,7 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Hash     : { "x": ( xs:integer(4) + 5 ) * 2 }
      Output   : <div>18</div>
 
-####  ✔ Escaped Variables
+####  ✔ Unescaped Variables
      Template : {{company}} {{{company}}}
      Hash     : { "company": "<b>MarkLogic</b>" }
      Output   : <div>&lt;b&gt;MarkLogic&lt;/b&gt; <b>MarkLogic</b></div>
