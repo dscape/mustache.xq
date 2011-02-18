@@ -177,6 +177,17 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Hash     : { "people": { "person": { "name": "Chris" }, "name": "Jan" } }
      Output   : <div>* Chris Jan</div>
 
+### Roadmap
+
+If you are interested in any of these (or other) feature and don't want to wait just read the instructions
+on "Contribute" and send in your code
+
+* Support XML as well as JSON
+* XQuery Lambdas (still haven't thought about how this magic would look like)
+* Partials
+* Rewrite John's parser and make it the default one
+* Rewrite the compiler for XQuery 1.0 without MarkLogic Extensions
+
 ### Known Limitations
 
 In this section we have the know limitations excluding the features that are not supported. 
