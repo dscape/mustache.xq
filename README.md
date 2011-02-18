@@ -208,9 +208,14 @@ This is not the actual test that we run (you can see a list of those in test/ind
 ### Add-Ons 
 
 ####  ✔ Descendant Variable
-     Template : {'* {{*name}}'}
+     Template : * {{*name}}
      Hash     : { "people": { "person": { "name": "Chris" }, "name": "Jan" } }
      Output   : <div>* Chris Jan</div>
+
+####  ✔ Descendant Variable inside a Section
+     Template : {{#people}}{{#person}}{{*name}}{{/person}}{{/people}}
+     Hash     : { "people": { "person": { "name": "Chris", "name": "Kelly"}, "name": "Jan" } }
+     Output   : <div>Chris Kelly</div>
 
 ### Known Limitations
 
