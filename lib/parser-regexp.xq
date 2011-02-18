@@ -83,7 +83,10 @@ declare function  parser:fixSections($seq, $etagsToBeFixed, $before, $after ) {
                 $following-inverted[fn:starts-with(@name, $parser:osec) or fn:starts-with(@name, $parser:oisec)],
                 $following-inverted,$following-inverted[fn:last()] ) 
               else (),
-              $afterClose)
+              parser:fixSections( $afterClose,
+                $afterClose[fn:starts-with(@name, $parser:osec) or fn:starts-with(@name, $parser:oisec)],
+                $afterClose,$afterClose[fn:last()] )
+                )
         else fn:error( (),  fn:concat( "no end of section for: ", $name ) )
     else 
     $seq };

@@ -9,7 +9,6 @@ import module
   at "json.xqy" ;
 
 declare function compiler:compile( $parseTree, $json ) {
-let $_ := xdmp:log((json:jsonToXML( $json ),'-----------------'))
  let $div := xdmp:unquote( fn:concat( '&lt;div&gt;',
    fn:string-join(compiler:compile-xpath( $parseTree, json:jsonToXML( $json ) ), ''),  '&lt;/div&gt;') )
  return compiler:handle-escaping($div) } ;
