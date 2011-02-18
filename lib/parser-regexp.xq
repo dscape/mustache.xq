@@ -2,7 +2,7 @@
   XQuery Parser for mustache
   Hybrid between proper parser and state machine (regexp)
 :)
-xquery version "1.0" ;
+xquery version "1.0-ml" ;
 module namespace parser = "parser.xq" ;
 
 declare namespace s = "http://www.w3.org/2009/xpath-functions/analyze-string" ;
@@ -16,7 +16,7 @@ declare variable $parser:comment     := '!' ;
 declare variable $parser:descendants := '*' ;
 declare variable $parser:templ       := ('&gt;', '&lt;') ;  (: > < :)
 declare variable $parser:unesc       := ('{', '&amp;') ;    (: { & :)
-declare variable $parser:r-tag       := '\s*(.+?)\s*' ;
+declare variable $parser:r-tag       := '\s*((\w|_|\s|\?|!|/|\.|-)+)\s*' ;     (: (\w|[?!\/-])* :)
 declare variable $parser:r-osec      := 
   fn:string-join( parser:escape-for-regexp( ( $parser:oisec, $parser:osec ) ), "|" ) ;
 declare variable $parser:r-csec      := parser:escape-for-regexp( $parser:csec ) ;
@@ -24,25 +24,29 @@ declare variable $parser:r-sec :=
   fn:concat($parser:r-osec, '|', $parser:r-csec) ;
 
 declare variable $parser:r-modifiers := 
-  fn:string-join( parser:escape-for-regexp( ( $parser:templ, $parser:unesc, $parser:comment, $parser:descendants ) ), "|" ) ;
+  fn:string-join( parser:escape-for-regexp( ( $parser:osec, $parser:oisec, $parser:templ, $parser:unesc, $parser:comment, $parser:descendants ) ), "|" ) ;
 declare variable $parser:r-mustaches := 
   parser:r-mustache( $parser:r-modifiers, '*' ) ;
 declare variable $parser:r-sections :=
   fn:concat(
     parser:r-mustache( $parser:r-osec, '' ),
-    $parser:r-tag,
+    '\s*(.+?)\s*',
     parser:r-mustache( $parser:r-csec, '' ) ) ;
 
 (: ~ parser :)
 declare function parser:parse( $template ) {
-  let $sections :=
+(:  let $sections :=
     <multi> {
-    parser:passthru-sections( fn:analyze-string($template, $parser:r-sections ) )
+    parser:passthru-sections( fn:analyze-string($template, $parser:r-sections, 's' ) )
     } </multi>
-  let $simple   := <multi> { parser:passthru( $sections ) } </multi>
-  let $fixedNestedSections := 
+    :)
+  let $simple   := <multi> { parser:passthru-simple(fn:analyze-string($template, $parser:r-mustaches)) } </multi>
+  let $_ := xdmp:log(('~~~~~~~~~~~', $simple))
+  let $fixedNestedSections := <multi>{
     let $etagsToBeFixed := $simple/etag [fn:starts-with(@name, $parser:osec) or fn:starts-with(@name, $parser:oisec)]
-    return <multi>{ parser:fixSections($simple/*, $etagsToBeFixed, (), () ) }</multi>
+      return parser:fixSections($simple/*, $etagsToBeFixed, (), () )
+  }</multi>
+  let $_ := xdmp:log(('^^^^^^^^^', $fixedNestedSections))
   return $fixedNestedSections };
 
 declare function  parser:fixSections($seq, $etagsToBeFixed, $before, $after ) {
@@ -51,6 +55,7 @@ declare function  parser:fixSections($seq, $etagsToBeFixed, $before, $after ) {
     if ($currentSection)
     then
       let $name           := fn:replace( $currentSection/@name, $parser:r-sec, '')
+      let $_ := xdmp:log(('%%%%%',$seq))
       let $closingSection := $seq [ fn:matches( @name, fn:concat( '/\s*',$name,'\s*' ) ) ] [ fn:last() ]
       return
         if ( $closingSection )
@@ -61,9 +66,11 @@ declare function  parser:fixSections($seq, $etagsToBeFixed, $before, $after ) {
               $afterOpen      := $currentSection/following-sibling::*,
               $childs         := $afterOpen intersect $beforeClose
           return 
-             ($beforeOpen, <section name="{$name}"> {
+             ($beforeOpen,
+                element {if(fn:starts-with($currentSection/@name,$parser:osec)) then 'section' else 'inverted-section'}
+                 { attribute name {$name},
               parser:fixSections( $childs, ( $etagsToBeFixed except $currentSection ), $currentSection,  $closingSection ) }
-            </section>, $afterClose)
+            , $afterClose)
         else fn:error( (),  fn:concat( "no end of section for: ", $name ) )
     else $seq };
 
@@ -76,18 +83,8 @@ declare function parser:dispatch-sections( $node ) {
     case element(s:match) return element 
       { if ($node/s:group[@nr=2]='#') then 'section' else 'inverted-section' } 
       { attribute name {$node/s:group[@nr=3]/fn:string() },
-      $node/s:group[@nr=5]/fn:string() }
+      $node/s:group[@nr=6]/fn:string() }
     default return parser:passthru-sections($node) };
-
-declare function parser:passthru($nodes) {
-  for $node in $nodes/node() return parser:dispatch($node) };
-
-declare function parser:dispatch( $node ) {
-  typeswitch($node)
-    case element(section) return <section>{$node/@*, parser:passthru($node)}</section>
-    case element(inverted-section) return <inverted-section>{$node/@*, parser:passthru($node)}</inverted-section>
-    case text() return parser:passthru-simple(fn:analyze-string($node/fn:string(), $parser:r-mustaches))
-    default return parser:passthru( $node ) } ;
 
 declare function parser:passthru-simple( $nodes ) {
   for $node in $nodes/node() return parser:dispatch-simple($node) };
@@ -97,7 +94,10 @@ declare function parser:dispatch-simple( $node ) {
     case element(s:non-match) return <static>{$node/fn:string()}</static>
     case element(s:match) return 
       let $modifier := $node/s:group[@nr=2]
-      let $contents := $node/s:group[@nr=3]
+      let $g3       := $node/s:group[@nr=3]
+      let $contents := 
+        if (fn:matches($modifier, $parser:r-osec))
+        then fn:concat($modifier, $g3) else $g3
       let $normalized-contents :=  fn:normalize-space(fn:replace($contents,'\}$', '')) 
       let $is-section := fn:contains( $normalized-contents, '.' ) and fn:not($normalized-contents='.')
       return 

@@ -212,7 +212,6 @@ This is not the actual test that we run (you can see a list of those in test/ind
      Hash     : { "people": { "person": { "name": "Chris" }, "name": "Jan" } }
      Output   : <div>* Chris Jan</div>
 
-
 ### Known Limitations
 
 In this section we have the know limitations excluding the features that are not supported. 

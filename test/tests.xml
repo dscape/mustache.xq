@@ -207,7 +207,8 @@
     <parseTree>
       <multi>
         <section name="array_of_strings">
-        <etag name="."/>
+          <etag name="."/>
+          <static>!</static>
         </section>
       </multi>
     </parseTree>
