@@ -52,7 +52,7 @@ let $_ := xdmp:log(("IN A SECTION ABOUT TO PROCESS", $sNode, "FOR", $node/@name)
 let $_ := xdmp:log(("FOUND AN ARRAY"))
             for $n at $p in $sNode/node()
 let $_ := xdmp:log(fn:concat($p,": ", xdmp:quote($n)))
-            return compiler:compile-xpath( $node, $json, $p, fn:concat( '/', fn:node-name($sNode), '/item' ) ) )
+            return compiler:compile-xpath( $node, $json, $p, fn:concat( $xpath, '/', fn:node-name($sNode), '/item' ) ) )
           else if($sNode/@type = "object") then 
 let $_ := xdmp:log(("POSSIBLY AN OJBECT")) return
           compiler:compile-xpath( $node, $json, $pos, fn:concat( $xpath,'/', fn:node-name( $sNode ) ) ) else ()
