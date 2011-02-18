@@ -25,7 +25,7 @@ declare function local:compiler-test( $template, $hash, $output ) {
 
 xdmp:set-response-content-type('application/xml'),
 let $results := <tests> {
-for $test at $i in $tests//test 
+for $test at $i in $tests//test
 order by $test/@section
 return try {
 let $template       := $test/template/fn:string()
