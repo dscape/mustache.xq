@@ -52,7 +52,7 @@ declare function parseContent($in as xs:string?, $sd as xs:string, $ed as xs:str
        let $r2 := parseContent( $r1/@remain, $sd, $ed )
        return element multi { $r2/@remain, $r1/node(), $r2/node() }
      else if($token eq $parser:_START_DELIM_) then
-       let $r1 := fn:trace(parseDelim( $remain, $sd, fn:concat("=", $ed) ), "parseDelim")
+       let $r1 := parseDelim( $remain, $sd, fn:concat("=", $ed) )
        let $r2 := parseContent( $r1/@remain, $r1/@start, $r1/@end )
        return element multi { $r2/@remain, $r2/node() }
      else if($token eq $parser:_START_END_) then
@@ -71,14 +71,14 @@ declare function token($token, $in, $length)
 
 declare function nextToken($in as xs:string?, $sdelim, $edelim)
 {
-  fn:trace(nextToken_($in, $sdelim, $edelim), "token:")
+  nextToken_($in, $sdelim, $edelim)
 };
 
 declare function nextToken_($in as xs:string?, $sdelim as xs:string, $edelim as xs:string)
 {
   if(fn:starts-with($in, $sdelim)) then
     let $nextc := fn:substring($in, 3, 1)
-    let $slen := fn:trace(fn:string-length($sdelim), "slen")
+    let $slen := fn:string-length($sdelim)
     return
       if($nextc eq "#") then token($parser:_START_SECTION_, $in, $slen + 1)
       else if($nextc eq "^") then token($parser:_START_INVERT_, $in, $slen + 1)
@@ -150,6 +150,25 @@ declare function parseSection($in as xs:string?, $n, $sd as xs:string, $ed as xs
      else error($r)
 };
 
+declare function parseDotNotation($n, $name)
+{
+  let $before := fn:substring-before($name, ".")
+  let $after := fn:substring-after($name, ".")
+  return if($before and $after) then
+    element section {
+      attribute name { $before },
+      parseDotNotation($n, $after)
+    }
+  else
+    element {
+      if($n eq $parser:_START_VAR_) then 'etag'
+      else if($n eq $parser:_START_EXT_) then 'rtag'
+      else "utag"
+    } {
+      attribute name { $name }
+    }
+};
+
 declare function parseETag($in as xs:string?, $n, $sd as xs:string, $ed as xs:string) {
    let $r := nextToken($in, $sd, $ed)
    let $token := $r/@token/fn:number()
@@ -159,21 +178,20 @@ declare function parseETag($in as xs:string?, $n, $sd as xs:string, $ed as xs:st
        let $r2 := nextToken($remain, $sd, $ed)
        let $token2 := $r2/@token/fn:number()
        let $remain2 := $r2/@remain/fn:string()
+       let $name := fn:normalize-space($r/@value)
        return
          if($token2 eq $parser:_END_) then
            element multi {
              attribute remain { $remain2 },
-             element {
-               if($n eq $parser:_START_PARTIAL_) then 'partial'
-               else if($n eq $parser:_START_COMMENT_) then 'comment'
-               else if($n eq $parser:_START_EXT_) then 'rtag'
-               else if($n eq $parser:_START_UNESCAPE_ or
-                       $n eq $parser:_START_TRIPLE_) then 'utag'
-               else 'etag'
-             } {
-               if($n eq $parser:_START_COMMENT_) then text{ $r/@value }
-               else attribute name { fn:normalize-space($r/@value) }
-             }
+             if($n eq $parser:_START_VAR_ or
+                $n eq $parser:_START_EXT_ or
+                $n eq $parser:_START_UNESCAPE_ or
+                $n eq $parser:_START_TRIPLE_) then
+               parseDotNotation($n, $name)
+             else if($n eq $parser:_START_COMMENT_) then
+               element comment { text{ $r/@value } }
+             else
+               element partial { attribute name { $name } }
            }
          else error($r2)
      else error($r)
@@ -190,7 +208,7 @@ declare function parseDelim($in as xs:string?, $sd as xs:string, $ed as xs:strin
        let $remain2 := $r2/@remain/fn:string()
        return
          if($token2 eq $parser:_END_) then
-           let $delims := fn:trace(fn:tokenize(fn:normalize-space($r/@value), "\s+"), "delims")
+           let $delims := fn:tokenize(fn:normalize-space($r/@value), "\s+")
            return
              if(fn:count($delims) ne 2) then
                fn:error(xs:QName("parser:ERR003"),
@@ -198,7 +216,7 @@ declare function parseDelim($in as xs:string?, $sd as xs:string, $ed as xs:strin
              else element delims {
                attribute remain { $remain2 },
                attribute start { $delims[1] },
-               fn:trace(attribute end { $delims[2] }, "end")
+               attribute end { $delims[2] }
              }
          else error($r2)
      else error($r)
