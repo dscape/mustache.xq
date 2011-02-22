@@ -6,7 +6,7 @@ xquery version "1.0" ;
 module namespace mustache = "mustache.xq" ;
 
 import module namespace parser   = "parser.xq"
-  at "lib/parser-regexp.xq" ;
+  at "lib/parser.xq" ;
 import module namespace compiler = "compiler.xq"
   at "lib/compiler.xqy" ;
 
