@@ -18,8 +18,9 @@ declare variable $parser:_START_PARTIAL_ := 6;
 declare variable $parser:_START_DELIM_ := 7;
 declare variable $parser:_START_TRIPLE_ := 8;
 declare variable $parser:_START_UNESCAPE_ := 9;
-declare variable $parser:_END_ := 10;
-declare variable $parser:_STRING_ := 11;
+declare variable $parser:_START_EXT_ := 10;
+declare variable $parser:_END_ := 11;
+declare variable $parser:_STRING_ := 12;
 
 declare function parse( $template ) {
    parseContent($template, "{{", "}}")
@@ -39,6 +40,7 @@ declare function parseContent($in as xs:string?, $sd as xs:string, $ed as xs:str
        let $r2 := parseContent( $r1/@remain, $sd, $ed )
        return element multi { $r2/@remain, $r1/node(), $r2/node() }
      else if($token eq $parser:_START_VAR_ or
+             $token eq $parser:_START_EXT_ or
              $token eq $parser:_START_COMMENT_ or
              $token eq $parser:_START_PARTIAL_ or
              $token eq $parser:_START_UNESCAPE_) then
@@ -86,6 +88,7 @@ declare function nextToken_($in as xs:string?, $sdelim as xs:string, $edelim as 
       else if($nextc eq "=") then token($parser:_START_DELIM_, $in, $slen + 1)
       else if($nextc eq "{") then token($parser:_START_TRIPLE_, $in, $slen + 1)
       else if($nextc eq "&amp;") then token($parser:_START_UNESCAPE_, $in, $slen + 1)
+      else if($nextc eq "*") then token($parser:_START_EXT_, $in, $slen + 1)
       else token($parser:_START_VAR_, $in, $slen)
   else if(fn:starts-with($in, $edelim)) then
     token($parser:_END_, $in, fn:string-length($edelim))
@@ -163,7 +166,7 @@ declare function parseETag($in as xs:string?, $n, $sd as xs:string, $ed as xs:st
              element {
                if($n eq $parser:_START_PARTIAL_) then 'partial'
                else if($n eq $parser:_START_COMMENT_) then 'comment'
-               (: else if($operator='*') then 'rtag' :)
+               else if($n eq $parser:_START_EXT_) then 'rtag'
                else if($n eq $parser:_START_UNESCAPE_ or
                        $n eq $parser:_START_TRIPLE_) then 'utag'
                else 'etag'
