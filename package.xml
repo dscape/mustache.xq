@@ -6,5 +6,5 @@
     git://github.com/dscape/mustache.xq.git
   </repo>
   <keywords>template, mustache, json</keywords>
-  <version>0.1</version>
+  <version>0.2</version>
 </package>
