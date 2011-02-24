@@ -2,7 +2,7 @@
   <name>mustache</name>
   <author>Nuno Job [nunojobpinto@gmail.com]</author>
   <description>Minimal templating with {{mustache}} in XQuery</description>
-  <repo type="git">
+  <repo type="git" tag="0.2">
     git://github.com/dscape/mustache.xq.git
   </repo>
   <keywords>template, mustache, json</keywords>
