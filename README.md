@@ -183,9 +183,9 @@ If you are interested in any of these (or other) feature and don't want to wait 
 on "Contribute" and send in your code
 
 * Support XML as well as JSON
+* Clean up whitespace with "&#x0a;"
 * XQuery Lambdas (still haven't thought about how this magic would look like)
 * Partials
-* Rewrite John's parser and make it the default one
 * Rewrite the compiler for XQuery 1.0 without MarkLogic Extensions
 
 ### Known Limitations
