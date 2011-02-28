@@ -1,7 +1,10 @@
 <package type="library">
   <name>mustache</name>
   <author>Nuno Job [nunojobpinto@gmail.com]</author>
-  <description>Minimal templating with {{mustache}} in XQuery</description>
+  <tagline>Minimal templating with {{mustache}} in XQuery</tagline>
+  <description>
+    mustache.xq is an XQuery-based implementation of the Mustache templating language. Mustache is a framework-agnostic way to render logic-free views and can be used for HTML, config files, source code—anything. It works by expanding tags in a template using values provided in a hash or object.
+  </description>
   <repo type="git" tag="0.2">
     git://github.com/dscape/mustache.xq.git
   </repo>
