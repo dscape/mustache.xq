@@ -27,16 +27,21 @@ used in any XQuery processor
 
 A quick example how to use mustache.xq:
 
+``` xquery
     import module namespace mustache = "mustache.xq"
      at "mustache.xqy";
     mustache:render( 'Hello {{text}}!', '{ "text": "world"}' )
+```
 
 Returns
 
+``` xquery
     <div>Hello world!</div>
+```
 
 A slightly more complicated example
 
+``` xquery
     mustache:render(
       '<h1>{{header}}</h1> {{#bug}} {{/bug}}
       {{#items}}
@@ -57,9 +62,11 @@ A slightly more complicated example
               {"name": "blue", "link": true, "url": "#Blue"}
           ],
           "empty": false }')
+```
 
 Outputs:
 
+``` xml
     <div>
       <h1>Colors</h1>
       <li>
@@ -72,6 +79,7 @@ Outputs:
         <a href="#Blue">blue</a>
       </li>
     </div>
+```
 
 For more (fun) examples refer to test/tests.xml. If you are new to mustache you can use it to learn more about it.
 
@@ -114,11 +122,13 @@ This will help us be faster fixing the problem.
 
 An example for a Hello World test would be:
 
+``` xml
      <test name="Hello World">
        <template>{'Hello {{word}}!'}</template>
        <hash>{'{"word": "world"}'}</hash>
        <output><div>Hello world !</div></output>
      </test>
+```
 
 This is not the actual test that we run (you can see a list of those in test/index.xqy) but it's all the information we need for a bug report.
 
