@@ -20,8 +20,8 @@ Mustache.xq is designed to help you when:
 2. Want to render json as a string
 3. Internationalization
 
-Mustache.xq was designed using [MarkLogic][4] Server but can be 
-used in any XQuery processor
+This Mustache.xq implementation works specifically for the XQuery processor
+[BaseX][4]. It is a fork of the [MarkLogic specific mustache.xq][5] implementation.
 
 ## Usage
 
@@ -92,25 +92,26 @@ Everyone is welcome to contribute.
 3. Test your changes
 4. Commit your changes
 5. Push to your branch - `git push origin my_branch`
-6. Create an pull request
+6. Create a pull request
 
 The documentation is severely lacking. Feel free to contribute to the wiki if 
 you think something could be improved.
 
 ### Running the tests
 
-To run the tests simply point an MarkLogic HTTP AppServer to the root of mustache.xqy
+To run the tests simply change your directory to the root of mustache.xq
 
-You can run the tests by accessing:
-(assuming 127.0.0.1 is the host and 8090 is the port)
+    cd mustache.xq
 
-    http://127.0.0.1:8090/test
+Assuming you have installed BaseX in your system you can run the tests by executing:
+
+    basex index.xqy
 
 Make sure all the tests pass before sending in your pull request!
 
 ### Report a bug
 
-If you want to contribute with a test case please file a [issue][2] and attach 
+If you want to contribute with a test case please file an [issue][3] and attach 
 the following information:
 
 * Name
@@ -196,29 +197,23 @@ on "Contribute" and send in your code
 * Clean up whitespace with "&#x0a;"
 * XQuery Lambdas (still haven't thought about how this magic would look like)
 * Partials
-* Rewrite the compiler for XQuery 1.0 without MarkLogic Extensions
 
 ### Known Limitations
 
 In this section we have the know limitations excluding the features that are not supported. 
 To better understand what is supported refer to the Supported Features section
 
-* Test cases can only be run in MarkLogic.
-* Bundled generator is MarkLogic Specific "1.0-ml".
 * Output is returned inside a <div/> tag. This is to support escaping.
 * Key names must be valid QNames (limitation of json.xqy and generator.xqy)
 
 ## Meta
 
-* Code: `git clone git://github.com/dscape/mustache.xq.git`
+* Code: `git clone git://github.com/dirkk/mustache.xq.git`
 * Home: <http://mustache.github.com>
-* Discussion: <http://convore.com/mustache>
-* Bugs: <http://github.com/dscape/mustache.xq/issues>
-
-(oO)--',- in [caos][5]
+* Bugs: <http://github.com/dirkk/mustache.xq/issues>
 
 [1]: http://code.google.com/p/google-ctemplate/
 [2]: http://www.ivan.fomichev.name/2008/05/erlang-template-engine-prototype.html
-[3]: http://github.com/dscape/mustache.xq/issues
-[4]: http://marklogic.com
-[5]: http://caos.di.uminho.pt/
+[3]: http://github.com/dirkk/mustache.xq/issues
+[4]: http://basex.org
+[5]: http://github.com/dscape/mustache.xq

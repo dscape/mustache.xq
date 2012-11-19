@@ -1,6 +1,6 @@
-xquery version "1.0-ml" ;
+xquery version "3.0" ;
 
-declare variable $tests := xdmp:invoke('tests.xml') ;
+declare variable $tests := xquery:invoke('tests.xml') ;
 
 declare function local:summarize( $name, $nodes ) {
   let $parseTests       := fn:count($nodes/@parseTest)
@@ -17,13 +17,20 @@ declare function local:summarize( $name, $nodes ) {
     perc="{if ($nokCompileTests=0) then '100' else fn:round(100 * $okCompileTests div ($okCompileTests+$nokCompileTests))}"/>)} };
 
 declare function local:parser-test( $template, $parseTree ) {
-  xdmp:invoke( 'run-parser.xqy', ( xs:QName( 'template' ), $template, xs:QName( 'parseTree' ), $parseTree ) ) };
+  xquery:invoke( 'run-parser.xqy', map{
+	'template' := $template,
+	'parseTree' := $parseTree
+  })
+};
 
 declare function local:compiler-test( $template, $hash, $output ) {
-    xdmp:invoke( 'run-compiler.xqy', ( xs:QName( 'template' ), $template, xs:QName( 'hash' ), $hash,
-      xs:QName( 'output' ), $output ) ) };
+    xquery:invoke( 'run-compiler.xqy', map{
+	'template' := $template,
+	'hash' := $hash,
+	'output' := $output
+  })
+};
 
-xdmp:set-response-content-type('application/xml'),
 let $results := <tests> {
 for $test at $i in $tests//test
 order by $test/@section
@@ -60,9 +67,9 @@ return <test position="{$i}" parseTest="{if($valid) then 'ok' else 'NOK'}">
                 <p> Got: {$outputCompiler} </p>
               </compileTestExplanation>
            else ()}
-       </test> } catch ($e) { <test type="ERROR" i="{$i}"  parseTest="NOK" compileTest="NOK">{
+       </test> } catch * { <test type="ERROR" i="{$err:code}"  parseTest="NOK" compileTest="NOK">{
          $test/@name}
-         <stackTrace>{$e}</stackTrace>
+         <stackTrace>{$err:description}</stackTrace>
          </test> }
 } </tests>
 return <result>
