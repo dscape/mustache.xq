@@ -21,7 +21,7 @@ Mustache.xq is designed to help you when:
 3. Internationalization
 
 This Mustache.xq implementation works specifically for the XQuery processor
-[BaseX][4]. It is a fork of the [MarkLogic specific mustache.xq][6] implementation.
+[BaseX][4]. It is a fork of the [MarkLogic specific mustache.xq][5] implementation.
 
 ## Usage
 
@@ -208,16 +208,12 @@ To better understand what is supported refer to the Supported Features section
 
 ## Meta
 
-* Code: `git clone git://github.com/dscape/mustache.xq.git`
+* Code: `git clone git://github.com/dirkk/mustache.xq.git`
 * Home: <http://mustache.github.com>
-* Discussion: <http://convore.com/mustache>
-* Bugs: <http://github.com/dscape/mustache.xq/issues>
-
-(oO)--',- in [caos][5]
+* Bugs: <http://github.com/dirkk/mustache.xq/issues>
 
 [1]: http://code.google.com/p/google-ctemplate/
 [2]: http://www.ivan.fomichev.name/2008/05/erlang-template-engine-prototype.html
 [3]: http://github.com/dirkk/mustache.xq/issues
 [4]: http://basex.org
-[5]: http://caos.di.uminho.pt/
-[6]: http://github.com/dscape/mustache.xq
+[5]: http://github.com/dscape/mustache.xq
