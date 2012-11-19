@@ -4,7 +4,7 @@
   Copyright 2011 John Snelson 
   twitter: @jpcs
 :)
-xquery version "1.0";
+xquery version "3.0";
 module namespace parser = "parser.xq";
 declare default function namespace "parser.xq";
 

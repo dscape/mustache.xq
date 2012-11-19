@@ -2,7 +2,7 @@
   XQuery Parser for mustache
   Hybrid between proper parser and state machine (regexp)
 :)
-xquery version "1.0" ;
+xquery version "3.0" ;
 module namespace parser = "parser.xq" ;
 
 declare namespace s = "http://www.w3.org/2009/xpath-functions/analyze-string" ;
