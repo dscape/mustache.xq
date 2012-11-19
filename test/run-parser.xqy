@@ -1,7 +1,6 @@
-xquery version "1.0-ml" ;
+xquery version "3.0" ;
 
-import module namespace mustache = "mustache.xq"
-  at "../mustache.xq" ;
+import module namespace mustache = "mustache.xq" at "../mustache.xq";
 
 declare variable $template external ;
 declare variable $parseTree external ;
